@@ -9,6 +9,21 @@ function release(tag:string,date:string,status='published',extra:Partial<RadarEv
 const old=release('v1.0.0','2026-01-01T12:00:00Z'),latest=release('v1.1.0','2026-02-01T12:00:00Z');
 const installed=installationFromRelease(old,'2026-03-01T12:00:00Z');
 
+test('cumulative comparison includes every later release oldest first without changing installation',()=>{
+ const middle=release('V1.0.5','2026-01-15'),newest=release('V1.2.0','2026-03-01'),beta=release('V2.0.0-beta.1','2026-04-01','prerelease'),backport=release('V0.9.9','2026-05-01');
+ const before=JSON.stringify(installed);
+ const result=releaseOverview([beta,old,newest,middle,latest,backport,newest],installed);
+ assert.deepEqual(result.newerReleases.map(e=>e.id),[middle.id,latest.id,newest.id]);
+ assert.equal(result.update?.release.id,newest.id);assert.equal(JSON.stringify(installed),before);
+ assert.equal(compareVersions('V0.1.5','v0.1.4'),1);
+});
+test('a matching tag from a different repo cannot supply the installed publication date',()=>{
+ const other=release('v1.0.0','2026-12-01','published',{repo:'owner/other'});
+ assert.deepEqual(releaseOverview([other,latest],manualInstallation(repo,'v1.0.0','now')).newerReleases.map(e=>e.id),[latest.id]);
+ assert.deepEqual(releaseOverview([latest],null).newerReleases,[]);
+ assert.deepEqual(releaseOverview([latest],manualInstallation(repo,'custom','now')).newerReleases,[]);
+});
+
 test('semver compares numerically including prerelease precedence and build metadata',()=>{assert.equal(compareVersions('v1.10.0','1.9.0'),1);assert.equal(compareVersions('1.0.0-beta.11','1.0.0-beta.2'),1);assert.equal(compareVersions('1.0.0','1.0.0-rc.1'),1);assert.equal(compareVersions('1.0.0+pc','v1.0.0+linux'),0);assert.equal(compareVersions('nightly-24','nightly-9'),null);assert.equal(compareVersions('1.2','1.1.0'),null);assert.equal(compareVersions('1.0.0-01','1.0.0'),null);});
 test('a later real release creates an update linked to its own source',()=>{const result=releaseOverview([latest,old],installed);assert.equal(result.update?.release.id,latest.id);assert.equal(result.update?.basis,'date');assert.equal(result.update?.release.url,latest.url);});
 test('marking the latest release removes the badge; editing it does not restore a badge',()=>{const marked=installationFromRelease(latest,'now');assert.equal(releaseOverview([old,latest],marked).update,null);assert.equal(releaseOverview([{...latest,revision:'2',detectedAt:'2026-04-01',sourceUpdated:'2026-04-01'}],marked).update,null);});

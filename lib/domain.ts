@@ -3,7 +3,7 @@ export const MAX_TARGETS=12;
 export const CACHE_MS=30*60*1000;
 export type TargetKind='repo'|'org';
 export type ParsedTarget={kind:TargetKind;key:string};
-export type RadarEvent={id:string;repo:string;kind:'release'|'commit'|'pr';title:string;body:string;url:string;date:string;sourceUpdated:string|null;revision:string;status:string;assets:number;firstSeen:string;detectedAt:string;read:boolean;releaseTag?:string|null;priority?:number;label?:string};
+export type RadarEvent={id:string;repo:string;kind:'release'|'commit'|'pr';title:string;body:string;url:string;date:string;sourceUpdated:string|null;revision:string;status:string;assets:number;firstSeen:string;detectedAt:string;read:boolean;releaseTag?:string|null;downloads?:import('./release-assets').ReleaseDownload[];priority?:number;label?:string};
 export type Target={id:string;key:string;kind:TargetKind;label:string;priority:number;repos:string[];createdAt:string;lastSync:string|null;error:string|null};
 export type Impact={tags:string[];reason:string;score:number;evidence:string|null};
 export function parseTarget(input:string):ParsedTarget {
@@ -32,4 +32,11 @@ export function explain(event:Pick<RadarEvent,'kind'|'title'|'body'|'status'|'as
 export async function fingerprint(value:unknown){const data=new TextEncoder().encode(JSON.stringify(value));return [...new Uint8Array(await crypto.subtle.digest('SHA-256',data))].map(n=>n.toString(16).padStart(2,'0')).join('');}
 export function mergeEvents(prior:RadarEvent[],incoming:RadarEvent[],now:string):RadarEvent[]{const map=new Map(prior.map(e=>[e.id,e]));for(const event of incoming){const old=map.get(event.id);map.set(event.id,{...event,firstSeen:old?.firstSeen??now,detectedAt:old&&old.revision===event.revision?old.detectedAt:now,read:!!old?.read&&old.revision===event.revision});}return [...map.values()];}
 
-export function rateFromHeaders(status:number,headers:Headers,now=Date.now()){const numeric=(name:string)=>headers.has(name)?Number(headers.get(name)):null;const remaining=numeric('x-ratelimit-remaining'),limit=numeric('x-ratelimit-limit'),reset=numeric('x-ratelimit-reset');const retry=numeric('retry-after')||60;return {remaining,limit,reset,blockedUntil:status===403||status===429?Math.max(now+retry*1000,remaining===0?(reset??0)*1000:0):null};}
+export function rateFromHeaders(status:number,headers:Headers,now=Date.now()){
+ const numeric=(name:string)=>{const value=headers.get(name);if(value===null||value.trim()==='')return null;const number=Number(value);return Number.isFinite(number)&&number>=0?number:null;};
+ const remaining=numeric('x-ratelimit-remaining'),limit=numeric('x-ratelimit-limit'),reset=numeric('x-ratelimit-reset');
+ const retry=headers.get('retry-after');
+ const seconds=retry!==null&&retry.trim()!==''?Number(retry):NaN;
+ const retryAt=Number.isFinite(seconds)&&seconds>=0?now+seconds*1000:retry?Date.parse(retry):NaN;
+ return {remaining,limit,reset,blockedUntil:status===403||status===429?Math.max(Number.isFinite(retryAt)?retryAt:now+60000,remaining===0?(reset??0)*1000:0,now+1000):null};
+}

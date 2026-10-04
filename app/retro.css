@@ -1,0 +1,267 @@
+/* Classic desktop skin. Layout, ordering and responsive breakpoints live in globals.css. */
+@font-face {
+  font-family: "Pixelify Sans";
+  src: url("/fonts/pixelify-sans.ttf") format("truetype");
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+:root {
+  --blue: #000080;
+  --border: #808080;
+  --muted: #414141;
+  --ink: #111;
+  --retro-face: #c0c0c0;
+  --retro-raised: inset 1px 1px #fff, inset -1px -1px #808080;
+  --retro-inset: inset 1px 1px #808080, inset -1px -1px #fff;
+  font-family: Tahoma, "Segoe UI", sans-serif;
+  color: var(--ink);
+  background: #008080;
+}
+.desktop { background: #008080; }
+.desktop *, .desktop *::before, .desktop *::after { border-radius: 0 !important; }
+.desktop :is(button, a, input, select, summary):focus-visible {
+  outline: 2px dotted #000;
+  outline-offset: 2px;
+}
+.desktop :is(input, select) { color-scheme: light; }
+.desktop svg { shape-rendering: crispEdges; }
+.desktop ::selection { background: #000080; color: #fff; }
+.desktop ::-webkit-scrollbar { width: 16px; height: 16px; }
+.desktop ::-webkit-scrollbar-track { background: #dfdfdf; box-shadow: var(--retro-inset); }
+.desktop ::-webkit-scrollbar-thumb { background: #c0c0c0; border: 1px solid #404040; box-shadow: var(--retro-raised); }
+.desktop ::-webkit-scrollbar-corner { background: #c0c0c0; }
+.window-bar {
+  background: #000080;
+  border: 3px solid #c0c0c0;
+  border-bottom: 0;
+  box-shadow: inset 1px 1px #fff, inset -1px 0 #404040;
+  backdrop-filter: none;
+}
+.brand { color: #fff; font-family: "Pixelify Sans", monospace; font-size: 28px; letter-spacing: 0; }
+.brand b { font-weight: 700; }
+.brand small { color: #fff; font-family: Tahoma, sans-serif; letter-spacing: 1px; font-size: 9px; }
+.window-meta { color: #fff; }
+.help-button {
+  color: #000;
+  background: var(--retro-face);
+  border: 1px solid #404040;
+  box-shadow: var(--retro-raised);
+}
+.window-bar .help-button:focus-visible, .window-bar .brand:focus-visible { outline-color: #fff; }
+.app-shell {
+  background: var(--retro-face);
+  border: 3px solid #c0c0c0;
+  border-top: 0;
+  box-shadow: inset 1px 0 #fff, inset -1px -1px #404040, 2px 2px #004040;
+}
+.sidebar { background: #c0c0c0; border-color: #808080; box-shadow: inset -1px 0 #fff; }
+.avatar { color: #fff; background: #000080; border: 1px solid #404040; box-shadow: var(--retro-raised); font-family: "Pixelify Sans", monospace; }
+.owner strong { color: #000; font-size: 14px; }
+.owner small, .source-select small, .mobile-source small, .sidebar-empty { color: #414141; }
+.owner small { font-size: 10px; }
+.section-label, .feed-heading .section-label, .game-card-title .section-label,
+.game-detail-info .section-label, .installed-heading .section-label,
+.version-heading .section-label { color: #414141; letter-spacing: 1px; }
+.section-label { font-size: 10px; }
+.nav-item { font-family: "Pixelify Sans", monospace; font-size: 16px; color: #111; }
+.nav-item:hover, .source-select:hover { background: #d4d4d4; }
+.nav-item.active, .nav-item.selected {
+  color: #fff; background: #000080; border-color: #404040; box-shadow: var(--retro-inset);
+}
+.nav-item span { color: #000; background: #c0c0c0; border: 1px solid #808080; box-shadow: var(--retro-inset); }
+.nav-item.active svg { filter: none; }
+.nav-item.active:focus-visible, .mobile-view-nav a[aria-current]:focus-visible { outline-color: #fff; outline-offset: -4px; }
+.source-select strong { font-size: 13px; color: #111; }
+.source-select small { font-size: 10px; }
+.source-icon, .source-icon.green {
+  background: #c0c0c0; color: #111; border: 1px solid #404040; box-shadow: var(--retro-raised);
+}
+.source-icon img, .game-art img { image-rendering: pixelated; }
+.icon-button { color: #111; }
+.icon-button:hover { color: #000; background: #d4d4d4; box-shadow: var(--retro-raised); }
+.icon-button.is-star { color: #7c5a00; }
+.source-error, .mobile-source .source-error { color: #800000; }
+.add-source { color: #000; background: #c0c0c0; border: 1px solid #404040; box-shadow: var(--retro-raised); font-size: 13px; }
+.sidebar-bottom { border-top-color: #808080; box-shadow: 0 -1px #fff; }
+.sidebar-bottom strong, .sidebar-bottom small { color: #414141; }
+.mini-orb { background: #008000; border-color: #004000; color: #fff; box-shadow: var(--retro-raised); }
+.live-dot { background: #008000; border: 1px solid #004000; box-shadow: none; }
+.window-meta .live-dot { background: #00ff00; }
+.hero { background: #c0c0c0; border-color: #808080; box-shadow: inset 0 -1px #fff; }
+.eyebrow, .orb-caption, .private-label { color: #414141; }
+.eyebrow > span { background: #008000; }
+h1, h1 em { color: #000; font-family: "Pixelify Sans", monospace; letter-spacing: 0; }
+.hero p { color: #111; }
+.radar-orb, .radar-orb.small { background: none; border: 0; box-shadow: none; padding: 0; }
+.radar-orb::after, .hero-wave, .spark { visibility: hidden; }
+.radar-orb svg { filter: drop-shadow(2px 2px #404040); }
+.primary, .secondary, .suggestions button, .mobile-view-nav > button {
+  background: #c0c0c0; color: #000; border: 1px solid #404040;
+  box-shadow: inset 1px 1px #fff, inset 2px 2px #dfdfdf, inset -1px -1px #808080;
+}
+.primary { font-family: "Pixelify Sans", monospace; font-size: 15px; }
+.secondary { font-family: "Pixelify Sans", monospace; font-size: 14px; }
+.primary:hover, .secondary:hover, .add-source:hover, .suggestions button:hover { filter: none; background: #d4d4d4; }
+.primary:active, .secondary:active, .help-button:active, .add-source:active, .suggestions button:active {
+  box-shadow: var(--retro-inset);
+}
+.desktop button:disabled { opacity: 1; color: #666; text-shadow: 1px 1px #fff; }
+.text-button, .back-link, .repo-link, .latest-link, .no-release-label, .download-empty,
+.event-footer a, .event-footer button, .help-panel a, .comparison-releases a {
+  color: #000080;
+}
+.text-button { font-size: 11px; }
+.back-link:hover, .repo-link:hover, .latest-link:hover, .event-footer a:hover,
+.comparison-releases a:hover, .help-panel a:hover { text-decoration: underline; }
+.stats { background: #c0c0c0; border-color: #808080; box-shadow: inset 0 -1px #fff; }
+.stat-icon, .stat-icon.blue, .stat-icon.green, .stat-icon.amber {
+  background: #c0c0c0; border: 1px solid #808080; color: #111; box-shadow: var(--retro-inset);
+}
+.stats b { font-family: "Pixelify Sans", monospace; font-size: 25px; color: #000; }
+.stats small { color: #414141; font-size: 10px; }
+.stats .sync-stat { border-color: #808080; box-shadow: -1px 0 #fff; }
+.sync-stat strong { color: #111; font-size: 11px; }
+.feed-heading h2, .game-detail-info h2, .game-card-title h3, .installed-heading h2,
+.comparison-heading h2, .welcome-panel h3, .empty-panel h3, .loading-panel h3,
+.modal h2, .help-panel h2 {
+  color: #000; font-family: "Pixelify Sans", monospace; letter-spacing: 0; font-weight: 700;
+}
+.feed-heading h2 { font-size: 28px; }
+.feed-heading h2 span { color: #111; background: #c0c0c0; border-color: #808080; box-shadow: var(--retro-inset); }
+.tabs { gap: 4px; border-color: #808080; box-shadow: 0 1px #fff; }
+.tabs button {
+  font-family: "Pixelify Sans", monospace; font-size: 15px; color: #111;
+  padding: 9px 12px; background: #b3b3b3; border: 1px solid #404040;
+  box-shadow: var(--retro-raised);
+}
+.tabs button.chosen { background: #c0c0c0; color: #000; border-bottom-color: #c0c0c0; box-shadow: inset 1px 1px #fff; }
+.search, .filters select, .installed-form select, .manual-version input,
+.download-heading select, .comparison-heading select, .modal input {
+  background: #fff; color: #000; border: 1px solid #808080; box-shadow: var(--retro-inset);
+}
+.search { color: #000; }
+.search input { color: #111; }
+.search input::placeholder, .modal input::placeholder, .manual-version input::placeholder { color: #555; opacity: 1; }
+.filters select, .search input { font-size: 12px; }
+.event-card, .game-card, .game-card.has-update, .installed-panel, .version-comparison,
+.welcome-panel, .empty-panel, .loading-panel, .help-panel, .latest-releases > a,
+.latest-releases > a.preliminary, .mobile-collection {
+  color: #111; background: #c0c0c0; border: 1px solid #404040; box-shadow: var(--retro-raised);
+}
+.event-card.release { border-left: 3px solid #000080; }
+.event-card.read { opacity: 1; }
+.event-icon, .event-icon.commit, .event-icon.pr { background: #c0c0c0; border-color: #404040; box-shadow: var(--retro-raised); color: #111; }
+.event-game-name { color: #000; font-size: 13px; }
+.kind-pill, .kind-pill.commit, .kind-pill.pr {
+  background: #000080; color: #fff; border: 1px solid #000080; font-size: 10px;
+}
+.kind-pill.commit { background: #800080; border-color: #800080; }
+.kind-pill.pr { background: #006000; border-color: #006000; }
+.status-pill { color: #111; background: #dfdfdf; border-color: #808080; }
+.download-label { color: #006000; }
+.event-repo, .event-date { color: #414141; font-size: 10px; }
+.event-card h3 { color: #000; font-family: "Pixelify Sans", monospace; font-size: 22px; letter-spacing: 0; }
+.event-card h3 a:hover { color: #000080; }
+.event-card h3 svg { color: #000080; }
+.impact, .release-downloads, .source-body {
+  background: #d4d4d4; border: 1px solid #808080; box-shadow: var(--retro-inset);
+}
+.impact-label { color: #000080; font-size: 10px; letter-spacing: 1px; }
+.impact p, .impact blockquote, .release-summary, .summary-status { color: #111; }
+.impact blockquote { border-color: #808080; }
+.summary-status { color: #414141 !important; }
+.release-summary strong { color: #000080; font-size: 11px; }
+.impact-tags span { color: #111; background: #c0c0c0; border-color: #808080; font-size: 9px; }
+.impact-tags small { color: #414141; font-size: 9px; }
+.event-footer, .event-footer a, .event-footer button { font-size: 11px; }
+.source-body pre { color: #111; font-family: "Courier New", monospace; }
+.source-body small { color: #414141; }
+.welcome-icon, .modal-icon, .suggestion-icon, .suggestion-icon.sea {
+  background: #c0c0c0; color: #000; border-color: #404040; box-shadow: var(--retro-raised); transform: none;
+}
+.welcome-panel p, .empty-panel p, .loading-panel p, .help-panel p, .modal p,
+.source-note, .suggestions small, .suggestions b, .suggestions svg { color: #414141; }
+.message, .message.error, .auth-panel, .modal-tip {
+  background: #dfdfdf; color: #000080; border: 1px solid #808080; box-shadow: var(--retro-inset);
+}
+.message.error, .form-error { color: #800000; }
+.status-bar {
+  color: #111; background: #c0c0c0; border-color: #808080; box-shadow: inset 0 1px #fff; font-size: 11px;
+}
+.status-bar button { color: #000; font-size: 11px; }
+.desktop-footer { color: #fff; font-size: 10px; }
+.modal-backdrop { background: #0006; backdrop-filter: none; }
+.modal, .add-dialog {
+  color: #111; background: #c0c0c0; border: 3px solid #c0c0c0;
+  box-shadow: inset 1px 1px #fff, inset -1px -1px #404040, 3px 3px #0006;
+}
+.add-dialog::backdrop { background: #0006; backdrop-filter: none; }
+.modal-title { background: #000080; color: #fff; border-color: #c0c0c0; font-family: "Pixelify Sans", monospace; font-size: 17px; }
+.modal-title .icon-button { color: #000; background: #c0c0c0; border: 1px solid #404040; box-shadow: var(--retro-raised); }
+.modal-title .icon-button:focus-visible { outline-color: #fff; }
+.modal label, .modal label small { color: #111; }
+.mobile-view-nav { background: #c0c0c0; border-color: #808080; box-shadow: inset 0 -1px #fff; }
+.mobile-view-nav a { color: #111; font-family: "Pixelify Sans", monospace; font-size: 16px; }
+.mobile-view-nav a[aria-current] { background: #000080; color: #fff; border-color: #404040; box-shadow: var(--retro-inset); }
+.collection-toggle { color: #111; }
+.collection-list, .mobile-source { border-color: #808080; }
+.collection-list > p { color: #414141; }
+.library-toolbar > small, .game-card-meta, .game-detail-info > p, .cover-control > small,
+.installed-current > span:not(.status-pill), .installed-empty, .comparison-note,
+.manual-version p, .installation-limit, .release-install > small, .latest-releases small,
+.comparison-limit { color: #414141; }
+.game-card-title h3 { font-size: 27px; }
+.game-open:hover .game-card-title h3 { color: #000080; }
+.game-art, .game-art.nectar, .game-art.large {
+  background: #c0c0c0; border-color: #808080; box-shadow: var(--retro-inset);
+}
+.game-art img { border: 3px solid transparent; }
+.game-emblem, .nectar .game-emblem {
+  color: #000; background: #c0c0c0; border: 1px solid #404040; box-shadow: var(--retro-raised); transform: none;
+}
+.game-emblem svg { filter: none; }
+.art-label { background: #c0c0c0; color: #000; border: 1px solid #404040; box-shadow: var(--retro-raised); backdrop-filter: none; }
+.art-orbit, .art-glint { visibility: hidden; }
+.game-card-bottom { background: #c0c0c0; border-color: #808080; box-shadow: inset 0 1px #fff; }
+.game-installed, .game-installed strong, .installed-current > strong { color: #111; }
+.update-badge { background: #c0c0c0; color: #006000; border: 2px solid #008000; }
+.game-update-notice { background: #c0c0c0; border-color: #008000; box-shadow: var(--retro-raised); }
+.game-update-notice strong, .game-update-notice small, .game-update-notice > svg { color: #006000; }
+.manual-version { border-color: #808080; box-shadow: 0 -1px #fff; }
+.manual-version summary { color: #000080; }
+.installed-form label, .manual-version label { color: #111; }
+.latest-releases > a, .latest-releases > a.preliminary { color: #000080; }
+.latest-releases strong { color: #000; }
+.download-heading { color: #000; font-family: "Pixelify Sans", monospace; font-size: 16px; }
+.download-heading label, .comparison-heading label { color: #111; font-family: Tahoma, sans-serif; font-size: 11px; }
+.download-file { background: #c0c0c0; color: #000; border-color: #404040; box-shadow: var(--retro-raised); }
+.download-file:hover { background: #dfdfdf; border-color: #000080; }
+.download-file:active { box-shadow: var(--retro-inset); }
+.download-file > span { color: #000; font-size: 12px; }
+.download-file small { color: #414141; font-size: 10px; }
+.game-check, .game-check.pending { color: #414141; }
+.game-check.pending { color: #800000; }
+.version-comparison p, .comparison-releases ul { color: #111; }
+.comparison-range strong { color: #000080; }
+.comparison-releases details { background: #d4d4d4; border-color: #808080; box-shadow: var(--retro-inset); }
+.comparison-releases summary { color: #000; font-family: "Pixelify Sans", monospace; font-size: 16px; }
+.comparison-releases summary span { color: #414141; font-family: Tahoma, sans-serif; }
+.comparison-releases summary svg { color: #000; }
+/* Preserve the existing mobile stacking and navigation. */
+@media (max-width: 560px) {
+  .brand { font-size: 23px; }
+  .feed-heading h2 { font-size: 25px; }
+  .tabs { gap: 3px; }
+  .tabs button { font-size: 13px; padding: 8px 5px; }
+  .event-card h3 { font-size: 21px; }
+  .mobile-view-nav a { font-size: 15px; }
+  .status-bar, .status-bar button { font-size: 10px; }
+  .game-check { font-size: 10px; }
+  .hero h1 { font-size: 30px; }
+}
+@media (max-width: 360px) {
+  .hero h1 { font-size: 26px; }
+  .tabs { gap: 2px; }
+  .tabs button { font-size: 11px; padding: 8px 2px; gap: 3px; }
+}

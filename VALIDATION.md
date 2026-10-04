@@ -1,3 +1,52 @@
+# Verificación del tema clásico · 4 octubre 2026
+
+- Referencia visual: imagen aportada por el usuario (escritorio Windows clásico). Fondo #008080, barra #000080, paneles #c0c0c0, bordes claros/oscuros y tipografía pixelada comprobados en el navegador. Tema completo en biblioteca, novedades, juego, comparación, detalle de release, descargas, formularios, estados vacíos/errores y ayuda.
+- Distribución preservada: components/radar.tsx, components/release-tools.tsx, hooks/use-radar.ts, app/globals.css y lib/radar.ts idénticos por SHA-256 a la fuente publicada anterior 3210339733dd58d6f72d22e7887cdb58dea36c7f. La capa CSS nueva modifica presentación; mantiene grids, navegación, orden de secciones y puntos de adaptación.
+- TypeScript aprobado tras los cambios de iconos. La fuente Pixelify Sans y su licencia OFL están incluidas en public/fonts; no depende de un servidor de fuentes externo.
+- QA con biblioteca local real: navegación entre biblioteca/novedades/juego, comparación V0.1.3→V0.1.5, filtro de descarga Windows, búsqueda sin coincidencias, diálogo y rechazo de una URL ajena a GitHub. No se añadieron fuentes ni se cambiaron instalaciones/portadas en las pruebas.
+- Escritorio 1280 px, móvil 390 px y 320 px: documento del mismo ancho que viewport. En 320 px todas las pestañas llegan como máximo al borde de su contenedor (302 px), sin recorte. Detalle de release y comparación a 390 px sin desbordamiento. Diálogo móvil de 320 px cabe en el viewport. Consola de navegador sin errores ni advertencias.
+- Evidencia en outputs/retro-library-desktop.png, retro-feed-desktop.png, retro-comparison-desktop.png, retro-library-mobile.png y retro-dialog-mobile.png.
+
+---
+
+# Verificación de las cinco mejoras · 4 octubre 2026
+
+- 57 pruebas de dominio/sincronización/extracción aprobadas; TypeScript y ESLint aprobados. Los nuevos casos cubren plataformas, URLs ajenas, archivos incompletos, tags escapados, comparación acumulada, tags V mayúscula, otra fuente con misma etiqueta e invalidación de resúmenes al editar notas.
+- 24 resúmenes en español revisados a partir de notas públicas capturadas, protegidos por huella del cuerpo. Los nuevos textos o ediciones muestran extractos originales hasta su revisión; no hay traducción automática.
+- QA con biblioteca real local: Releases seleccionado al abrir; filtro Android en Nectar 0.9.2 muestra solo APK; Conker V0.1.3 → V0.1.5 incluye V0.1.4 y V0.1.5 manteniendo instalada V0.1.5. Portadas visibles cargan correctamente.
+- Estado por juego usa checked_at de la caché de releases; se distingue de la última sincronización general. Descargas provienen de la caché existente, sin llamadas GitHub adicionales.
+- Comparación móvil a 390 px: documento 390 px, sin desbordamiento horizontal. Evidencia: outputs/all-improvements-comparison.png.
+- Comparación limitada a las 20 releases capturadas por juego; no se presenta como historial completo. No se modificaron las instalaciones ni portadas de producción al probar.
+- Publicación privada confirmada con estado succeeded a las 2026-10-04T06:13:40Z; fuente 3210339733dd58d6f72d22e7887cdb58dea36c7f, despliegue appgdep_6ac1ee8b4d5081918bd8255a781c8309. URL: https://recomp-radar-allan.allanreyy.chatgpt.site. Compilación de producción aprobada.
+
+---
+
+# Recuperación tras cuota agotada de GitHub
+
+- Diagnóstico de producción: `github-rate` registró remaining=0, limit=60 y reset=1791092242; Conker tenía last_sync=null. El aviso anterior repetía el mismo bloqueo por tipo y usaba UTC.
+- Se agregó respuesta estructurada rateLimited/retryAt. La cola espera hasta el reinicio real, sin limitarlo al reintento corto de un bloqueo entre procesos. La UI muestra una sola pausa y hora del navegador.
+- Las releases se consultan para todos los repositorios seleccionados antes de commits/PR. Una petición restante ya no se desperdicia con el umbral anterior de tres.
+- Las capturas antiguas en caché pueden persistirse durante una pausa; no se modifica su checked_at ni se marca completa la consulta. Los intentos bloqueados enteramente por cuota no alteran la rotación.
+- 47 pruebas aprobadas, incluidas cuota cero sin solicitudes HTTP, captura con la última petición disponible, recuperación tras reset, Retry-After como fecha HTTP, caché antigua y prioridad de releases.
+
+---
+
+# Optimización de sincronización · verificación local
+
+- `npm test`: 40 pruebas aprobadas. Se agregaron 10 pruebas de sincronización sobre SQLite con las migraciones reales y 5 de la cola del navegador.
+- Fallos parciales: una consulta de commits fallida conserva las releases y permite guardar PR. La fecha de captura original y las revisiones de lectura se conservan; una edición vuelve a quedar sin leer.
+- Cobertura: ciclos sucesivos recorren más de seis repositorios, también si una fuente falla. La consulta de una fuente recién añadida se limita a esa fuente y valida que pertenezca al usuario.
+- Exclusión: un bloqueo vigente responde `busy` sin duplicar errores. Los bloqueos numéricos anteriores se respetan hasta expirar. El bloqueo nuevo tiene propietario, se renueva durante el ciclo y su liberación no borra un bloqueo ajeno.
+- Escrituras: una captura sintética de seis repositorios guarda 480 eventos en 18 lotes de eventos. Repetirla sin cambios realiza cero escrituras de eventos. No se trata de una medición de latencia de producción.
+- Interfaz: solicitudes de apertura/visibilidad se agrupan; una fuente nueva permanece en cola y tiene prioridad sobre una consulta general en espera. Los reintentos tienen espera creciente de 3 a 10 segundos y se cancelan al desmontar la vista.
+- Navegador contra el Worker compilado, D1/R2 aislados en `/tmp/recomp-radar-sync-qa/state`: se añadió un repositorio ficticio mientras había un bloqueo de 25 segundos. Apareció un solo aviso de espera y se cargó su release automáticamente al expirar el bloqueo, sin volver a pulsar Refrescar. Consola sin errores ni advertencias. Evidencia local: `outputs/sync-automatic-retry.png`.
+- `tests/library-api.mjs`: 36 comprobaciones HTTP aprobadas sobre el Worker compilado con identidad ficticia; versiones, portadas, rechazo de entradas y aislamiento entre usuarios siguen funcionando.
+- `npm run lint`, TypeScript y compilación aprobados. Las portadas privadas mantienen un `img` autenticado directo, con excepción de lint documentada para evitar un proxy de imágenes.
+- Migración 0003: dos índices aditivos para consultas por repositorio/fecha y por repositorio/tipo/fecha. Aplicada en la base aislada de pruebas. Pendiente aplicar al publicar en producción.
+- No se publicaron cambios ni se modificaron datos o tareas de producción. Se conserva la frontera privada de Sites para la ruta de fondo.
+
+---
+
 # Verificación de Recomp Radar · biblioteca · 4 octubre 2026
 
 ## Mejora verificada en local

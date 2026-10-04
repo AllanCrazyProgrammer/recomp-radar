@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" shape-rendering="crispEdges">
+  <defs>
+    <pattern id="grid" width="6" height="6" patternUnits="userSpaceOnUse">
+      <rect width="6" height="6" fill="#00be00"/>
+      <path d="M0 6V0h6" fill="none" stroke="#073b00" stroke-width="1"/>
+    </pattern>
+    <clipPath id="screen"><path d="M24 19h16v2h6v3h4v4h3v6h2v12h-2v6h-3v4h-4v3h-6v2H24v-2h-6v-3h-4v-4h-3v-6H9V34h2v-6h3v-4h4v-3h6Z"/></clipPath>
+  </defs>
+  <!-- Metal antenna and stepped circular housing, drawn on a 64 px grid. -->
+  <path fill="#101010" d="M27 1h10v2h4v3h2v6h-3v4H24v-4h-3V6h2V3h4Z"/>
+  <path fill="#c0c0c0" d="M27 3h10v2h3v5H24V6h3Zm-1 9h12v5H26Z"/>
+  <path fill="#fff" d="M27 3h5v2h-5Zm-3 3h2v4h-2Zm2 7h3v3h-3Z"/>
+  <path fill="#606060" d="M35 4h2v2h-2Zm3 3h2v2h-2Zm-3 6h2v2h-2Z"/>
+  <path fill="#101010" d="M22 13h20v2h7v3h5v5h4v7h2v17h-2v7h-4v4h-5v3h-7v2H22v-2h-7v-3h-5v-4H6v-7H4V30h2v-7h4v-5h5v-3h7Z"/>
+  <path fill="#a0a0a0" d="M22 15h20v2h7v3h3v4h4v7h2v15h-2v7h-4v3h-4v3h-7v2H23v-2h-7v-3h-4v-4H8v-7H6V31h2v-7h4v-4h4v-3h6Z"/>
+  <path fill="#e4e4e4" d="M22 15h20v2h7v3h3v4h4v7h2v10h-3V31h-3v-6h-4v-4h-7v-2H23v2h-7v4h-4v6H9v14h2v7h4v4h7v3h-6v-3h-4v-4H8v-7H6V31h2v-7h4v-4h4v-3h6Z"/>
+  <path fill="#fff" d="M23 16h18v1H23Zm19 2h6v2h-6Zm8 4h2v5h-2Zm-41 9h1v9H9Zm5 23h3v2h-3Zm5 4h7v2h-7Z"/>
+  <path fill="#101010" d="M23 17h18v2h7v3h4v5h3v6h2v14h-2v6h-3v5h-4v3h-7v1H23v-1h-7v-3h-4v-5H9v-6H7V33h2v-6h3v-5h4v-3h7Z"/>
+  <path fill="#808080" d="M23 18h18v2h6v3h4v5h3v6h2v12h-2v6h-3v5h-4v3h-6v1H23v-1h-6v-3h-4v-5h-3v-6H8V34h2v-6h3v-5h4v-3h6Z"/>
+  <g clip-path="url(#screen)">
+    <rect x="8" y="18" width="48" height="44" fill="url(#grid)"/>
+    <path d="M32 40V20h14l8 8Z" fill="#50ef00" opacity=".3"/>
+    <path d="M32 30v20M22 40h20" stroke="#fff34b" stroke-width="1"/>
+  </g>
+  <!-- Yellow signals and the red direction marker from the reference. -->
+  <path fill="#ffdd00" d="M41 24h4v1h1v4h-1v1h-4v-1h-1v-4h1Zm-24 13h4v1h1v4h-1v1h-4v-1h-1v-4h1Zm5 13h4v1h1v4h-1v1h-4v-1h-1v-4h1Z"/>
+  <path fill="#181800" d="M42 26h2v2h-2Zm-25 13h1v1h-1Zm3 0h1v1h-1Zm-3 2h1v1h-1Zm3 0h1v1h-1Zm2 11h1v1h-1Zm3 0h1v1h-1Zm-2 2h1v1h-1Z"/>
+  <path fill="#700000" d="M31 35h2v3h2v3h2v3H27v-3h2v-3h2Z"/>
+  <path fill="#ec1600" d="M31 35h2v4h2v4h-6v-4h2Z"/>
+  <rect x="32" y="41" width="1" height="1" fill="#101010"/>
+  <path fill="#303030" d="M57 36h1v1h-1Zm0 3h1v1h-1Zm0 3h1v1h-1ZM30 61h1v1h-1Zm3 0h1v1h-1Z"/>
+</svg>

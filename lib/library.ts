@@ -12,7 +12,7 @@ export type Installation = {
 type Semver = {core: bigint[]; pre: string[]};
 
 function semver(tag: string): Semver | null {
-  const match = /^v?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-([\da-zA-Z-]+(?:\.[\da-zA-Z-]+)*))?(?:\+[\da-zA-Z-]+(?:\.[\da-zA-Z-]+)*)?$/.exec(tag);
+  const match = /^[vV]?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-([\da-zA-Z-]+(?:\.[\da-zA-Z-]+)*))?(?:\+[\da-zA-Z-]+(?:\.[\da-zA-Z-]+)*)?$/.exec(tag);
   if (!match) return null;
   const pre = match[4]?.split('.') ?? [];
   if (pre.some(part => /^\d+$/.test(part) && part.length > 1 && part.startsWith('0'))) return null;
@@ -77,9 +77,10 @@ export function releaseOverview(events: RadarEvent[], installation: Installation
   const latest = stable[0] ?? releases[0] ?? null;
   const latestPreliminary = releases.find(e => e.status === 'prerelease') ?? null;
   let update: UpdateNotice | null = null;
+  const newerReleases:RadarEvent[]=[];
   let comparisonNote = 'Marca la versión que instalaste para comparar futuras releases.';
   if (installation) {
-    const matched = releases.find(e => e.id === installation.releaseId || releaseTag(e) === installation.tag);
+    const matched = releases.find(e => e.repo.toLowerCase() === installation.repo.toLowerCase() && (e.id === installation.releaseId || releaseTag(e) === installation.tag));
     const installedDate = validTime(matched?.date ?? installation.publishedAt);
     const installedTag = matched ? releaseTag(matched) ?? installation.tag : installation.tag;
     const allowPreliminary = matched ? matched.status === 'prerelease' : installation.prerelease === true;
@@ -96,16 +97,16 @@ export function releaseOverview(events: RadarEvent[], installation: Installation
       if (installedDate !== null && published <= installedDate) continue;
       if (installedDate === null && comparison !== 1) continue;
       const basis = installedDate !== null ? 'date' as const : 'semver' as const;
-      update = {release, basis, explanation: basis === 'date'
+      newerReleases.push(release);
+      update ??= {release, basis, explanation: basis === 'date'
         ? comparison === null ? 'Esta release se publicó después de la versión marcada. Sus etiquetas no permiten comparar números de versión.' : 'Esta release se publicó después y su versión es superior a la que marcaste.'
         : 'La etiqueta semver es superior a la que escribiste. No conocemos la fecha de publicación de tu versión instalada.'};
-      break;
     }
     comparisonNote = update?.explanation ?? (!releases.length ? 'Todavía no hay releases capturadas para comparar.'
       : installedDate === null && !semver(installedTag) ? 'No podemos ordenar esta etiqueta sin una release y fecha conocidas. No se muestra un aviso de actualización.'
       : `No se ha capturado una release posterior compatible con esta comparación.${allowPreliminary ? ' También se consideran preliminares.' : ' Las preliminares se muestran aparte.'}`);
   }
-  return {releases, latest, latestPreliminary, update, comparisonNote};
+  return {releases, latest, latestPreliminary, update, comparisonNote,newerReleases:newerReleases.reverse()};
 }
 
 export type LibraryGame = {

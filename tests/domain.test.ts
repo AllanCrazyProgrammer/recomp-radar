@@ -11,3 +11,10 @@ test('read state survives duplicate fetches and an edited revision becomes unrea
 test('rate limits honour retry-after, reset and the minimum secondary backoff',()=>{assert.equal(rateFromHeaders(429,new Headers({'retry-after':'120'}),1000).blockedUntil,121000);assert.equal(rateFromHeaders(403,new Headers({'x-ratelimit-remaining':'0','x-ratelimit-reset':'500'}),1000).blockedUntil,500000);assert.equal(rateFromHeaders(403,new Headers(),1000).blockedUntil,61000);assert.equal(rateFromHeaders(200,new Headers({'x-ratelimit-remaining':'50','x-ratelimit-limit':'60'}),1000).remaining,50);assert.equal(rateFromHeaders(200,new Headers(),1000).remaining,null);});
 
 test('classification ignores generated artifact links and image markup',()=>{const result=explain({kind:'pr',title:'Fix item tracker crash',body:'<img alt="Windows" src="x">\n- [Linux](https://nightly.link/a/b/1.zip)',status:'merged',assets:0});assert.ok(!result.tags.includes('Compatibilidad'));assert.ok(result.tags.includes('Jugabilidad'));assert.equal(result.evidence,'Fix item tracker crash');});
+
+test('Retry-After accepts an HTTP date and malformed headers cannot produce NaN',()=>{
+ const now=Date.parse('2026-10-04T05:00:00Z');
+ assert.equal(rateFromHeaders(429,new Headers({'retry-after':'Sun, 04 Oct 2026 05:02:00 GMT'}),now).blockedUntil,now+120000);
+ const rate=rateFromHeaders(429,new Headers({'x-ratelimit-remaining':'bad','x-ratelimit-reset':'bad','retry-after':'bad'}),now);
+ assert.equal(rate.remaining,null);assert.equal(rate.reset,null);assert.equal(rate.blockedUntil,now+60000);
+});

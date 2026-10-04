@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, primaryKey, uniqueIndex } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, primaryKey, uniqueIndex, index } from 'drizzle-orm/sqlite-core';
 export const targets = sqliteTable('targets', {
   id: text('id').primaryKey(), userId: text('user_id').notNull(), key: text('key').notNull(), kind: text('kind').notNull(),
   label: text('label').notNull(), priority: integer('priority').notNull().default(0), repos: text('repos').notNull().default('[]'),
@@ -9,7 +9,10 @@ export const events = sqliteTable('events', {
   body: text('body').notNull(), url: text('url').notNull(), date: text('date').notNull(), sourceUpdated: text('source_updated'),
   revision: text('revision').notNull(), status: text('status').notNull(), assets: integer('assets').notNull().default(0),
   firstSeen: text('first_seen').notNull(), detectedAt: text('detected_at').notNull(), releaseTag: text('release_tag'),
-});
+}, t => [
+  index('events_repo_detected_date').on(t.repo,t.detectedAt,t.date),
+  index('events_repo_kind_date').on(t.repo,t.kind,t.date),
+]);
 export const reads = sqliteTable('reads', {
   userId: text('user_id').notNull(), eventId: text('event_id').notNull(), revision: text('revision').notNull(), readAt: text('read_at').notNull(),
 }, t=>[primaryKey({columns:[t.userId,t.eventId]})]);
