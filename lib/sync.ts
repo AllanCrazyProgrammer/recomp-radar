@@ -4,7 +4,7 @@ import {eventEndpoints, normalize, type GithubEvent, type GithubFetch, type Gith
 
 export type RefreshResult = {busy: boolean; added: number; changed: number; errors: string[]; repos: string[]; at?: string; retryAfterMs?: number; rateLimited?: boolean; retryAt?: number};
 export type SyncOptions = {fresh?: boolean; targetId?: string};
-type Dependencies = {db: D1Database; github: GithubFetch; listTargets: () => Promise<Target[]>; now?: () => number};
+type Dependencies = {db: D1Database; github: GithubFetch; listTargets: () => Promise<Target[]>; now?: () => number; syncKey?:string};
 const LEASE_MS = 45_000;
 class LeaseLost extends Error {constructor() {super('La consulta cambió de proceso. Vuelve a intentarlo.');}}
 
@@ -61,7 +61,7 @@ export function selectRepos(targets: Target[], attempts: Map<string, number>, ta
   return repos.sort((a,b) => (attempts.get(a) ?? 0) - (attempts.get(b) ?? 0)).slice(0,MAX_REPOS);
 }
 
-export async function syncTargets({db, github, listTargets, now = Date.now}: Dependencies, options: SyncOptions = {}): Promise<RefreshResult> {
+export async function syncTargets({db, github, listTargets, now = Date.now, syncKey = 'last-sync'}: Dependencies, options: SyncOptions = {}): Promise<RefreshResult> {
   const lease = await acquireLease(db, now);
   if (!lease) return {busy:true, added:0, changed:0, errors:[], repos:[], retryAfterMs:3000};
   const errors: string[] = [], checked: string[] = [];
@@ -139,7 +139,7 @@ export async function syncTargets({db, github, listTargets, now = Date.now}: Dep
     });
     if (targetWrites.length) await db.batch(targetWrites);
     const result:RefreshResult = {busy:false,added,changed,errors,repos:checked,at:new Date(now()).toISOString(),...(retryAt ? {rateLimited:true,retryAt} : {})};
-    await db.prepare("INSERT INTO settings(key,value) VALUES('last-sync',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").bind(JSON.stringify(result)).run();
+    await db.prepare("INSERT INTO settings(key,value) VALUES(?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").bind(syncKey,JSON.stringify(result)).run();
     return result;
   } finally {await lease.release();}
 }

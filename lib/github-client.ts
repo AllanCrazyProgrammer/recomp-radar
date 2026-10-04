@@ -7,10 +7,10 @@ export function createGithubClient({db,fetch:request=fetch,now=Date.now}:Depende
     const row=await db.prepare("SELECT value FROM settings WHERE key='github-rate'").first<{value:string}>();
     return row?JSON.parse(row.value):{remaining:null,limit:null,reset:null,blockedUntil:null};
   }
-  async function github<T>(path:string,fresh=false):Promise<T>{
+  async function github<T>(path:string,fresh=false,cacheMs?:number):Promise<T>{
     const cached=await db.prepare('SELECT * FROM cache WHERE path=?').bind(path).first<{json:string;etag:string;checked_at:number}>();
     const timestamp=now();
-    if(cached&&timestamp-cached.checked_at<(fresh?5*60*1000:CACHE_MS))return JSON.parse(cached.json);
+    if(cached&&timestamp-cached.checked_at<(cacheMs??(fresh?5*60*1000:CACHE_MS)))return JSON.parse(cached.json);
     const rate=await getRate();
     const resumeAt=rateResumeAt(rate,timestamp);
     // Include old captured data so the sync can restore it without pretending it is fresh.

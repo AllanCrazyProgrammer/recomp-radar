@@ -10,7 +10,7 @@ export type GithubEvent = {
   commit?: {message?: string; committer?: {date?: string}; author?: {date?: string}};
   assets?: {id: number; name: string; size: number; updated_at: string}[];
 };
-export type GithubFetch = <T>(path: string, fresh?: boolean) => Promise<T>;
+export type GithubFetch = <T>(path: string, fresh?: boolean, cacheMs?:number) => Promise<T>;
 export const eventEndpoints = {
   release: '/releases?per_page=20',
   commit: '/commits?per_page=30',

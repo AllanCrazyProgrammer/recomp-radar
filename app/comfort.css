@@ -1,0 +1,157 @@
+/* Larger type and native pixel cursors, keeping the existing layout rules. */
+:root { font-size: 16px; }
+.desktop { cursor: url('/cursors/arrow.cur') 2 1, default; }
+.desktop :is(button,a,summary,label[for],select) { cursor: url('/cursors/hand.cur') 10 2, pointer; }
+.desktop :is(input:not([type=checkbox]):not([type=radio]):not([type=file]),textarea,.search) { cursor: url('/cursors/text.cur') 12 14, text; }
+.desktop :is(button:disabled,input:disabled,select:disabled,.upload-label.disabled,[aria-disabled=true]) { cursor: not-allowed; }
+.brand { font-size: 30px; }
+.brand small, .owner small, .section-label, .eyebrow, .orb-caption, .private-label,
+.sidebar-bottom strong, .sidebar-bottom small, .source-note { font-size: 12px; }
+.owner strong, .source-select strong, .mobile-source strong { font-size: 15px; }
+.source-select small, .mobile-source small, .sidebar-empty { font-size: 12px; }
+.nav-item { font-size: 18px; }
+.hero h1 { font-size: 40px; }
+.hero p { font-size: 15px; }
+.primary { font-size: 18px; }
+.secondary, .cover-control .secondary, .installed-form .secondary, .manual-version .secondary { font-size: 16px; }
+.text-button, .add-source, .back-link, .repo-link { font-size: 14px; }
+.stats b { font-size: 29px; }
+.stats small, .sync-stat strong { font-size: 12px; }
+.feed-heading h2 { font-size: 32px; }
+.feed-heading .section-label, .game-card-title .section-label, .game-detail-info .section-label,
+.installed-heading .section-label, .version-heading .section-label { font-size: 12px; }
+.feed-heading h2 span, .nav-item span { font-size: 12px; }
+.tabs button { font-size: 18px; }
+.search input, .library-toolbar .search input, .filters select,
+.installed-form select, .manual-version input, .modal input,
+.download-heading select, .comparison-heading select { font-size: 15px; }
+.event-game-name { font-size: 16px; }
+.event-top .kind-pill, .status-pill, .download-label { font-size: 12px; }
+.event-repo, .event-date { font-size: 13px; }
+.event-card h3 { font-size: 26px; }
+.impact-label { font-size: 13px; }
+.impact p, .release-summary li, .comparison-releases ul, .version-comparison p,
+.comparison-note, .installed-empty, .manual-version p, .game-detail-info > p,
+.welcome-panel p, .empty-panel p, .loading-panel p, .help-panel p, .modal p { font-size: 15px; line-height: 1.75; }
+.release-summary strong { font-size: 14px; }
+.summary-status { font-size: 14px !important; }
+.impact-tags span, .impact-tags small { font-size: 12px; }
+.impact blockquote { font-size: 13px; }
+.event-footer, .event-footer a, .event-footer button { font-size: 13px; }
+.source-body pre { font-size: 13px; }
+.source-body small, .game-check, .game-check small,
+.comparison-limit, .installation-limit, .release-install > small,
+.cover-control > small, .library-toolbar > small,
+.installed-current > span:not(.status-pill), .comparison-releases summary span,
+.latest-releases small { font-size: 12px; }
+.game-card-title h3 { font-size: 31px; }
+.game-card-meta, .game-installed, .latest-link, .no-release-label { font-size: 14px; }
+.game-installed strong { font-size: 16px; }
+.game-detail-info h2 { font-size: 42px; }
+.installed-heading h2, .comparison-heading h2, .welcome-panel h3,
+.empty-panel h3, .loading-panel h3, .help-panel h2 { font-size: 25px; }
+.installed-current > strong { font-size: 22px; }
+.installed-form label, .manual-version label, .manual-version summary { font-size: 14px; }
+.latest-releases strong { font-size: 18px; }
+.update-badge { font-size: 12px; white-space: normal; }
+.game-update-notice strong { font-size: 18px; }
+.game-update-notice small { font-size: 14px; }
+.download-heading { font-size: 20px; }
+.download-heading label, .comparison-heading label { font-size: 13px; }
+.download-file > span { font-size: 15px; }
+.download-file small, .download-empty, .comparison-releases a { font-size: 13px; }
+.comparison-releases summary { font-size: 19px; }
+.message, .status-bar, .status-bar button { font-size: 13px; }
+.desktop-footer { font-size: 12px; }
+.modal-title { font-size: 20px; }
+.modal h2 { font-size: 27px; }
+.modal label { font-size: 14px; }
+.modal label small, .modal-tip, .form-error { font-size: 12px; }
+.suggestions b { font-size: 15px; }
+.suggestions small { font-size: 12px; }
+.collection-toggle, .collection-list > p { font-size: 14px; }
+.mobile-view-nav a { font-size: 17px; }
+.sound-toggle {
+  margin-left: 14px; min-height: 30px; padding: 5px 8px; display: inline-flex; align-items: center; gap: 6px;
+  font: 14px "Pixelify Sans", monospace; color: #111; background: #c0c0c0;
+  border: 1px solid #404040; box-shadow: var(--retro-raised); flex-shrink: 0;
+}
+.sound-toggle:active { box-shadow: var(--retro-inset); }
+.sound-toggle:focus-visible { outline-color: #fff; }
+@media(max-width:800px) {
+  .brand { font-size: 26px; }
+  .hero h1 { font-size: 34px; }
+  .window-meta { font-size: 12px; }
+}
+@media(max-width:560px) {
+  .brand { font-size: 24px; }
+  .brand small { font-size: 9px; }
+  .sound-toggle { margin-left: auto; padding: 5px; min-width: 30px; justify-content: center; }
+  .sound-toggle span { display: none; }
+  .help-button { margin-left: 8px; }
+  .hero h1 { font-size: 32px; }
+  .hero p { font-size: 14px; }
+  .hero .private-label { font-size: 10px; }
+  .hero .eyebrow { font-size: 10px; }
+  .feed-heading h2, .library-section .feed-heading h2 { font-size: 27px; }
+  .event-card h3 { font-size: 24px; }
+  .game-detail-info h2 { font-size: 35px; }
+  .tabs button { font-size: 15px; padding: 8px 4px; gap: 4px; }
+  .stats small { font-size: 11px; }
+  .stats b { font-size: 26px; }
+  .impact p, .release-summary li, .comparison-releases ul { font-size: 14px; }
+  .event-game-name { font-size: 14px; }
+  .release-summary strong { font-size: 13px; }
+  .impact-tags small { font-size: 11px; }
+  .game-check, .game-check small { font-size: 11px; }
+  .status-bar, .status-bar button { font-size: 11px; }
+  .desktop-footer { font-size: 10px; }
+}
+@media(max-width:360px) {
+  .hero h1 { font-size: 29px; }
+  .tabs { gap: 2px; }
+  .tabs button { font-size: 12px; padding: 8px 2px; gap: 2px; }
+  .tabs svg { width: 13px; height: 13px; }
+  .brand { font-size: 22px; }
+  .brand .radar-orb.small { width: 34px; height: 34px; }
+}
+
+/* Release-specific desktop tabs and project instructions. */
+.release-info.impact { padding: 0; }
+.release-info-tabs { display:flex; flex-wrap:wrap; gap:4px; padding:10px 14px 0; border-bottom:1px solid #808080; box-shadow:0 1px #fff; }
+.release-info-tabs button { padding:9px 14px; border:1px solid #404040; background:#b3b3b3; color:#111; box-shadow:var(--retro-raised); font:18px "Pixelify Sans",monospace; }
+.release-info-tabs button[aria-selected=true] { background:#d4d4d4; color:#000080; font-weight:700; border-bottom-color:#d4d4d4; box-shadow:inset 1px 1px #fff; transform:translateY(1px); }
+.release-info-panel { padding:20px; }
+.guide-heading { display:flex; gap:14px; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; }
+.project-guide h4 { margin:6px 0 0; font:700 23px "Pixelify Sans",monospace; color:#000; }
+.guide-heading label { display:flex; gap:8px; align-items:center; font-size:13px; }
+.guide-heading select { padding:7px 9px; background:white; color:#111; font-size:15px; border:1px solid #808080; box-shadow:var(--retro-inset); }
+.project-guide p, .project-guide li { font-size:15px; line-height:1.75; overflow-wrap:anywhere; }
+.project-guide h5 { margin:22px 0 9px; font:700 15px Tahoma,"Segoe UI",sans-serif; color:#000080; }
+.project-guide ul, .project-guide ol { margin:0; padding-left:26px; }
+.project-guide ul { list-style:disc; }
+.project-guide ol { list-style:decimal; }
+.project-guide li { margin:8px 0; }
+.project-guide .guide-version { font-size:12px; color:#414141; margin:12px 0; }
+.guide-scope { border-left:3px solid #000080; padding-left:12px; }
+.guide-data { margin-top:20px; padding:12px; border:1px solid #808080; background:#c0c0c0; box-shadow:var(--retro-inset); }
+.guide-data strong { font-size:14px; color:#000080; }
+.guide-data p { margin:6px 0 0; }
+.guide-sources { display:flex; gap:14px; flex-wrap:wrap; margin-top:18px; font-size:13px; color:#000080; }
+.guide-sources a { text-decoration:underline; }
+@media(max-width:560px) {
+ .release-info-tabs { padding:8px 8px 0; gap:3px; }
+ .release-info-tabs button { font-size:15px; padding:8px 9px; }
+ .release-info-panel { padding:14px; }
+ .project-guide p, .project-guide li { font-size:14px; }
+ .project-guide h4 { font-size:21px; }
+}
+@media(max-width:360px) { .release-info-tabs button { font-size:14px; padding:8px 6px; } }
+.guide-extracted { margin: 20px 0; padding-top: 12px; border-top: 1px solid #999; }
+.guide-source-text p { white-space: pre-line; }
+.guide-source-text pre { max-width: 100%; overflow-x: auto; padding: 12px; margin: 12px 0; background: #eee; box-shadow: inset 1px 1px #808080; }
+.guide-source-text code { font: 14px/1.7 monospace; overflow-wrap: anywhere; }
+.guide-source-text pre code { overflow-wrap: normal; }
+.guide-section-source { font-size: 12px; }
+.guide-full-document { margin: 16px 0; border: 1px solid #888; padding: 10px; }
+.guide-full-document summary { color: navy; font-weight: 700; }

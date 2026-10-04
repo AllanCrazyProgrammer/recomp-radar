@@ -106,3 +106,55 @@ Sites creó una tarea propia vinculada, enabled, ID Automation_ccff6f9a1a9c81918
 12 fuentes, 6 repos/ciclo; primero repos individuales y prioridad dentro de grupos. Organizaciones: los 6 repos públicos no archivados ni forks con push reciente de la primera página de 100. Por repo: 20 releases, 30 commits de rama por defecto, 30 PR por actualización; feed500. No garantiza historia completa ni cada cambio de períodos largos. Caché30min; manual5min. GitHub público normalmente60req/h/IP, cuota y reinicio reales visibles.
 
 El contexto es determinista por texto, evidencia y enlace; no hay IA generativa ni medición de FPS, compatibilidad o instalación. Fechas fuente separadas de captura/edición; primera captura es historial.
+
+## Sonidos, fuentes y cursores · 4 octubre 2026
+
+TypeScript sin errores. En navegador local con Pikmin y Conker se verificaron los dos WAV listos (readyState 4), sin MediaError: un clic llegó al final de 75 ms y escribir speedrun hizo avanzar el audio de teclas de 42 ms. El buscador siguió filtrando correctamente. Silenciar pausó ambos audios y el botón siguió desactivado tras recargar; reactivarlo funcionó. La consola no mostró errores ni avisos.
+
+Fuentes calculadas: título de release 26 px, notas 15 px y pestañas 18 px. CSS seleccionó los tres cursores CUR locales con sus puntos activos. En 320×780 y 390×844, ancho del documento igual al viewport y todas las pestañas dentro de la pantalla, sin recorte interno. Captura de escritorio: outputs/retro-sound-large-type.png. La comprobación de audio se hizo con reproducción DOM, sin evaluación auditiva manual.
+
+## Grabaciones reales de clic y teclado · 4 octubre 2026
+
+Se reemplazaron los tonos sintetizados por grabaciones CC0 de 1j01 (ratón) y bigmonmulgrew (teclado mecánico medio/fuerte). Fuentes, licencia y edición en public/sounds/LICENSE.md. Tres WAV mono a 44.1 kHz, 16 bits; duraciones de 95, 132 y 138 ms; tamaño total 32,296 bytes. Se recortó el silencio inicial de las teclas para responder al escribir.
+
+TypeScript pasó. En el navegador local, las cinco voces estuvieron listas sin MediaError. El clic llegó al final; escribir speedrun activó las cuatro voces rotativas y dejó el resultado correcto. Tras silenciar y recargar, escribir conker dejó las cinco voces pausadas en tiempo cero y el botón desactivado. Reactivación comprobada; consola sin errores ni avisos. La reproducción se comprobó con el estado DOM, sin evaluación auditiva manual.
+
+## Guías por proyecto · 4 octubre 2026
+
+TypeScript pasó. Se comprobó la selección del repositorio exacto sin distinguir mayúsculas; repositorios desconocidos y nombres parecidos no reciben guías ajenas; las rutas fuente rechazan repos inválidos y codifican etiquetas con barras.
+
+En navegador con la biblioteca real local: instalación Pikmin en Windows, actualización Android sin desinstalar y actualización Linux mediante launcher; instalación y actualización Conker macOS con su ruta de datos. Las opciones se mantienen al cambiar pestaña. El detalle de V0.1.5 mostró su guía macOS y pasos con numeración decimal. Flecha derecha cambió Instalación a Actualizar y Home volvió a Versión. En 0.9.1 se mostraron el alcance de la guía 0.9.2 y enlaces separados al README de ambas etiquetas. Consola sin errores ni avisos.
+
+QA a 320×780 y 390×844: documento igual al viewport; todas las pestañas visibles dentro del panel después de corregir su ajuste a varias filas. Capturas: outputs/release-tabs-pikmin.png, outputs/release-tabs-conker.png y outputs/release-tabs-mobile.png. Se verificaron instrucciones y navegación, no se instalaron ni actualizaron juegos.
+
+## Guías automáticas para cualquier repositorio · 4 oct 2026
+
+68 pruebas pasaron, incluyendo 11 casos nuevos de extracción por repositorio, exclusión de instrucciones de desarrollo, comandos Markdown, guías enlazadas limitadas al mismo repo/ref, documentación ausente, caché de 24 horas, peticiones simultáneas deduplicadas, ETag y pausa compartida con conservación de datos anteriores. TypeScript y compilación de producción pasaron.
+
+Se descargaron la release pública v1.2.2 y el README de esa etiqueta de Zelda64Recomp/Zelda64Recomp para validar un tercer proyecto real. Una base local aislada y dos usuarios ficticios verificaron 12 aserciones del endpoint: autenticación, fuente seguida, release capturada del mismo repo, rechazo de commits, etiqueta correcta, extracción de requisitos/Plug and Play y respuesta idéntica desde caché. No se cambiaron los datos de la biblioteca real ni se publicaron los datos de prueba.
+
+En navegador, Instalación mostró requisitos e instrucciones del README de Zelda, y Actualizar extrajo las indicaciones sobre conservación de partidas de las notas originales de esa release. Flecha derecha cambió entre pestañas. En 390×844 y 320×780 el documento midió exactamente el ancho del viewport, sin desbordamiento. Consola sin errores ni advertencias. Evidencia: outputs/universal-guide-zelda-update.png. Los extractos automáticos conservan el idioma original; cuando no hay instrucciones explícitas, se muestran las notas y documentación disponibles, sin inventar pasos. No se instaló ni actualizó ningún juego.
+
+## Autenticación y amigos en local · 4 oct 2026
+
+Se aplicó el paquete de 22 archivos autorizado directamente, con hashes antes/después verificados y respaldo; 174 archivos de código ajenos al paquete conservaron su contenido. Pasaron 79 pruebas unitarias, 65 aserciones de handlers con bindings sintéticos, TypeScript, ESLint, diff check y compilación de producción. No se hizo push ni publicación.
+
+Con autorización posterior se aplicó la migración 0004 a la base local: cuatro tablas sociales nuevas, integridad SQLite correcta y hashes de todos los registros previos idénticos dentro de la transacción. Estado previo: 139 eventos, 2 fuentes, 2 instalaciones y 2 portadas. Respaldo y trazas en `.sites-runtime/local-friends-setup/`.
+
+La identidad de la sesión local se verificó mediante el endpoint `/api/account`; `.env.local` contiene únicamente la configuración local de la cuenta de fondo y está ignorado por Git. En el servidor real de desarrollo, `/api/account` confirmó configuración, `/api/friends` devolvió 200 con perfil vacío y 401 sin sesión, y `/api/background` ejecutó una consulta de fondo con respuesta 200, ambos repositorios de esa cuenta, 0 añadidos, 0 cambios y 0 errores. Fuentes, instalaciones y portadas se conservaron. No se creó un perfil ni se activó descubrimiento. La identidad real y el runtime del Site publicado no se configuraron; QA visual de Amigos sigue pendiente.
+
+## QA de Amigos con dos cuentas ficticias · 4 oct 2026
+
+Con autorización directa para las pruebas, se ejecutó el Worker compilado en loopback con D1/R2 aislados en `.sites-runtime/friends-qa/state/`. Dos proxies locales de prueba asignaron identidades sintéticas distintas; no se copiaron datos ni credenciales reales. La prueba no configura autenticación ni permisos de hosting.
+
+Pasaron de nuevo 79 pruebas unitarias y 65 aserciones de handlers. Otras 19 aserciones HTTP contra el Worker real comprobaron 401, caché privada, rechazo de origen ajeno, persistencia de amistad, ausencia de identificadores internos/correos del otro usuario y separación de fuentes/versiones instaladas, incluso entre amigos.
+
+En navegador se verificaron creación de alias oculto por defecto, búsqueda exacta tras consentimiento, envío/recepción/aceptación, persistencia al recargar, eliminación, rechazo, cancelación, bloqueo en ambos sentidos y desbloqueo sin restaurar amistad. Se comprobó búsqueda móvil. En 1280, 390 y 320 px, el documento midió exactamente el ancho del viewport. Consola sin errores ni avisos. Evidencia: `outputs/friends-desktop.png` y `outputs/friends-mobile.png`; resultados en `.sites-runtime/friends-qa/`.
+
+Los hashes de eventos, instalaciones, portadas, lecturas, caché y las cuatro tablas sociales de la base habitual permanecieron idénticos. La base habitual tuvo actividad independiente de sincronización durante la prueba: cambiaron hashes de fuentes, ajustes y metadatos internos; las fuentes registran sincronización a las 18:42:33 UTC. Las pruebas usaron exclusivamente la base aislada. No se hizo push ni publicación; la validación con dos identidades reales del hosting continúa pendiente.
+
+## Juegos en el radar de amigos · 4 oct 2026
+
+Pasaron 82 pruebas unitarias y 83 aserciones de handlers, TypeScript, ESLint y compilación de producción. Los casos nuevos verifican acceso solo después de aceptación, amigos ocultos, radar vacío, bloqueo en ambos sentidos, retirada, desbloqueo sin restauración, terceros, IDs inválidos, fuentes de organización, deduplicación y rechazo de URLs almacenadas inseguras.
+
+En el Worker compilado con base sintética aislada, el radar devolvió 404 antes de aceptar y para un tercero; tras aceptar devolvió únicamente el juego de la cuenta amiga, campos públicos y caché privada. Tras bloquear volvió a 404. En navegador se comprobó «Ver radar»/«Ocultar radar», el juego de otra cuenta y la desaparición del panel al bloquear. Escritorio y 390/320 px, sin desbordamiento ni errores/avisos de consola. Capturas: `outputs/friend-radar-desktop.png` y `outputs/friend-radar-mobile.png`. No se modificaron datos reales por las pruebas, no hubo push ni publicación y no se validó todavía hosting con identidades reales.

@@ -10,7 +10,7 @@ type TargetRow={id:string;key:string;kind:Target['kind'];label:string;priority:n
 type InstallationRow={repo:string;release_id:string|null;tag:string;title:string;published_at:string|null;prerelease:number|null;marked_at:string};
 type EventResult={id:string;repo:string;kind:string;title:string;body:string;url:string;date:string;source_updated:string|null;revision:string;status:string;assets:number;first_seen:string;detected_at:string;release_tag:string|null;read_revision:string|null};
 const db=()=>{if(!env.DB)throw new Error('La base de datos no está disponible.');return env.DB;};
-export async function listTargets(userId?:string):Promise<Target[]>{const rows=await db().prepare('SELECT * FROM targets'+(userId?' WHERE user_id=?':'')+' ORDER BY priority DESC,created_at ASC').bind(...(userId?[userId]:[])).all<TargetRow>();return rows.results.map(r=>({id:r.id,key:r.key,kind:r.kind,label:r.label,priority:r.priority,repos:JSON.parse(r.repos),createdAt:r.created_at,lastSync:r.last_sync,error:r.error}));}
+export async function listTargets(userId:string):Promise<Target[]>{if(!userId)throw new Error('Se requiere una cuenta explícita.');const rows=await db().prepare('SELECT * FROM targets WHERE user_id=? ORDER BY priority DESC,created_at ASC').bind(userId).all<TargetRow>();return rows.results.map(r=>({id:r.id,key:r.key,kind:r.kind,label:r.label,priority:r.priority,repos:JSON.parse(r.repos),createdAt:r.created_at,lastSync:r.last_sync,error:r.error}));}
 export async function addTarget(userId:string,input:string,label:string){
  const parsed=parseTarget(input);const existing=await listTargets(userId);if(existing.some(t=>t.key===parsed.key))throw new Error('Ya sigues ese proyecto.');if(existing.length>=MAX_TARGETS)throw new Error(`Puedes seguir hasta ${MAX_TARGETS} fuentes.`);
  let repos:string[]=[];let key=parsed.key;
@@ -60,11 +60,14 @@ export async function snapshot(userId:string){
  const coverRows=await db().prepare('SELECT repo,updated_at FROM game_covers WHERE user_id=?').bind(userId).all<{repo:string;updated_at:string}>();
  const covers=coverRows.results.filter(r=>allowed.has(r.repo)).map(r=>({repo:r.repo,updatedAt:r.updated_at}));
  const schedule=await db().prepare("SELECT value FROM settings WHERE key='server-schedule'").first<{value:string}>();
- const sync=await db().prepare("SELECT value FROM settings WHERE key='last-sync'").first<{value:string}>();
- return {targets,events,releases,installations,covers,checks,rate:await getRate(),lastSync:sync?JSON.parse(sync.value):null,limits:{maxRepos:MAX_REPOS,maxTargets:MAX_TARGETS,cacheMinutes:30,releases:20,commits:30,prs:30,feed:500},background:!!(schedule&&JSON.parse(schedule.value).enabled)};
+ let sync=await db().prepare("SELECT value FROM settings WHERE key=?").bind('last-sync:'+userId).first<{value:string}>();
+ // Legacy aggregate belongs only to an explicitly verified service owner.
+ if(!sync&&userId===(env as unknown as {BACKGROUND_OWNER_USER_ID?:string}).BACKGROUND_OWNER_USER_ID?.trim())sync=await db().prepare("SELECT value FROM settings WHERE key='last-sync'").first<{value:string}>();
+ return {targets,events,releases,installations,covers,checks,rate:await getRate(),lastSync:sync?JSON.parse(sync.value):null,limits:{maxRepos:MAX_REPOS,maxTargets:MAX_TARGETS,cacheMinutes:30,releases:20,commits:30,prs:30,feed:500},background:!!(userId===(env as unknown as {BACKGROUND_OWNER_USER_ID?:string}).BACKGROUND_OWNER_USER_ID?.trim()&&schedule&&JSON.parse(schedule.value).enabled)};
 }
-export async function refresh(userId?:string,fresh=false,targetId?:string){
- return syncTargets({db:db(),github,listTargets:()=>listTargets(userId)},{fresh,targetId});
+export async function refresh(userId:string,fresh=false,targetId?:string){
+ if(!userId)throw new Error('Se requiere una cuenta explícita.');
+ return syncTargets({db:db(),github,listTargets:()=>listTargets(userId),syncKey:'last-sync:'+userId},{fresh,targetId});
 }
 export async function mutate(userId:string,input:unknown){
  if(!input||typeof input!=='object'||Array.isArray(input))throw new Error('Solicitud inválida.');

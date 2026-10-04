@@ -29,3 +29,19 @@ export const gameCovers = sqliteTable('game_covers', {
   userId: text('user_id').notNull(), repo: text('repo').notNull(), objectKey: text('object_key').notNull(),
   mime: text('mime').notNull(), bytes: integer('bytes').notNull(), updatedAt: text('updated_at').notNull(),
 }, t => [primaryKey({columns:[t.userId,t.repo]})]);
+
+// Accepted friends may view followed game names/repos; installations and covers remain private.
+export const socialProfiles = sqliteTable('social_profiles', {
+  userId:text('user_id').primaryKey(), publicId:text('public_id').notNull(), alias:text('alias').notNull(),
+  discoverable:integer('discoverable').notNull().default(0), createdAt:text('created_at').notNull(),
+},t=>[uniqueIndex('social_public_id').on(t.publicId),uniqueIndex('social_alias').on(t.alias)]);
+export const socialRelations = sqliteTable('social_relations', {
+  id:text('id').primaryKey(),userLow:text('user_low').notNull(),userHigh:text('user_high').notNull(),
+  requester:text('requester').notNull(),state:text('state').notNull(),version:integer('version').notNull(),
+},t=>[uniqueIndex('social_pair').on(t.userLow,t.userHigh),index('social_low_state').on(t.userLow,t.state),index('social_high_state').on(t.userHigh,t.state)]);
+export const socialBlocks = sqliteTable('social_blocks', {
+  blocker:text('blocker').notNull(),blocked:text('blocked').notNull(),createdAt:text('created_at').notNull(),
+},t=>[primaryKey({columns:[t.blocker,t.blocked]}),index('social_blocked').on(t.blocked)]);
+export const socialLimits = sqliteTable('social_limits', {
+  userId:text('user_id').notNull(),bucket:text('bucket').notNull(),window:integer('window').notNull(),count:integer('count').notNull(),
+},t=>[primaryKey({columns:[t.userId,t.bucket]})]);
