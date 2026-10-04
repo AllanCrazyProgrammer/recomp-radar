@@ -40,7 +40,7 @@ npx tsc --noEmit --incremental false
 npm run build
 ```
 
-Conservar integración `sites()` y `.openai/hosting.json`. Nunca guardar credenciales en el proyecto. `/api/background` confía en la frontera owner-private de Sites; antes de cambiar audiencia añadir autorización de servicio independiente. Toda operación de `/api/radar` autoriza identidad del visitante. Las consultas GitHub son solo lectura. El repo GitHub del usuario está pendiente si la conexión no permite crear repositorios.
+Conservar integración `sites()` y `.openai/hosting.json`. Nunca guardar credenciales en el proyecto. `/api/background` confía en la frontera owner-private de Sites; antes de cambiar audiencia añadir autorización de servicio independiente. Toda operación de `/api/radar` autoriza identidad del visitante. Las consultas GitHub son solo lectura. Código completo en el repositorio privado [AllanCrazyProgrammer/recomp-radar](https://github.com/AllanCrazyProgrammer/recomp-radar).
 
 ## Fuentes oficiales
 
@@ -56,6 +56,6 @@ Conservar integración `sites()` y `.openai/hosting.json`. Nunca guardar credenc
 
 Site existente: https://recomp-radar-allan.allanreyy.chatgpt.site, propietario-privado, ID appgprj_6ac17a4e00d48191b241e9e167e5a20b. Conservar audiencia y la tarea horaria existente; no crear otra. Se observó un ciclo de fondo persistido el 4 de octubre de 2026 a las 00:13:52.273 UTC, sin errores. Sites expone la definición habilitada, pero no historial de ejecución con estado succeeded; la atribución al programador se basa en el writer y el intervalo horario.
 
-El aviso de versión es in-app, sin email, push ni avisos de dot. Los límites de cuota/cobertura siguen aplicando. El repo GitHub privado del usuario permanece pendiente por la limitación de creación/autenticación ya documentada. No modificar credenciales GitHub.
+El aviso de versión es in-app, sin email, push ni avisos de dot. Los límites de cuota/cobertura siguen aplicando. Carga completa a GitHub confirmada el 4 de octubre de 2026: 146 archivos verificados por SHA y modo contra la fuente publicada; se excluyó únicamente la caché generada tsconfig.tsbuildinfo. No modificar credenciales GitHub.
 
 Las pruebas API con dos usuarios se ejecutan solo en el Worker local compilado, usando cabeceras que simulan identidad de Sites. `tests/seed-library.sql` contiene datos ficticios y nunca es una migración ni debe aplicarse en producción. Ver `tests/library-api.mjs` (36 comprobaciones) y `tests/library-persistence.mjs` (preparar, reiniciar servidor, verificar). La vista local autenticada usa la identidad ficticia local_seedy. Las portadas de fixtures son imágenes generadas de prueba, no portadas oficiales. Consulta VALIDATION.md para resultados y límites.
