@@ -196,7 +196,14 @@ h1, h1 em { color: #000; font-family: "Pixelify Sans", monospace; letter-spacing
   color: #111; background: #c0c0c0; border: 3px solid #c0c0c0;
   box-shadow: inset 1px 1px #fff, inset -1px -1px #404040, 3px 3px #0006;
 }
-.add-dialog::backdrop { background: #0006; backdrop-filter: none; }
+.add-dialog::backdrop, .cover-search-dialog::backdrop { background: #0006; backdrop-filter: none; }
+.cover-search-dialog { color: #111; background: #c0c0c0; border: 3px solid #c0c0c0; box-shadow: inset 1px 1px #fff, inset -1px -1px #404040, 3px 3px #0006; }
+.cover-option { background: #c0c0c0; color: #000; border: 1px solid #404040; box-shadow: var(--retro-raised); }
+.cover-option:hover { background: #d4d4d4; }
+.cover-option:active { box-shadow: var(--retro-inset); }
+.cover-option small, .cover-option-fallback, .cover-search-status { color: #414141; }
+.cover-option b { color: #000080; }
+.cover-option img, .cover-option-fallback { border: 1px solid #808080; background: #dfdfdf; image-rendering: auto; }
 .modal-title { background: #000080; color: #fff; border-color: #c0c0c0; font-family: "Pixelify Sans", monospace; font-size: 17px; }
 .modal-title .icon-button { color: #000; background: #c0c0c0; border: 1px solid #404040; box-shadow: var(--retro-raised); }
 .modal-title .icon-button:focus-visible { outline-color: #fff; }

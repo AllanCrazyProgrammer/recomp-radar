@@ -13,7 +13,7 @@ App privada en español para Allan. TypeScript, React/Vinext, Cloudflare Workers
 - Marcar, cambiar o quitar la versión instalada es explícito. Aviso discreto de nueva versión enlazado al detalle de la release con explicación, fecha y fuente.
 - Si se conoce la release instalada, se exige una publicación posterior; si ambas etiquetas son semver, además debe ser una versión superior. Tags arbitrarios se ordenan por fecha, nunca alfabéticamente. Una etiqueta manual semver puede compararse sin fecha conocida; otras etiquetas manuales quedan pendientes hasta tener una release conocida. Una edición de la misma release o un commit/PR no genera este aviso.
 - Las instalaciones estables comparan releases estables. Las preliminares se ven por separado y generan aviso solo cuando se marca una preliminar instalada.
-- Portada propia desde el dispositivo: JPG/PNG de hasta 2 MiB y 4096 × 4096 px. Cambio y borrado. Archivos en R2 privado; metadatos por usuario/juego en D1. MIME y firma raster validados, SVG rechazado. GET de portada exige la identidad del propietario del archivo. No hay búsqueda ni descarga de portadas externas.
+- Portada propia por juego: subida manual de JPG/PNG, o el botón «Buscar portada» en cada juego de la biblioteca y en su ficha. La búsqueda usa el nombre del juego (el de la biblioteca, por ejemplo Pikmin para Project Nectar) y ofrece varias imágenes de Wikipedia y Wikimedia Commons (imagen de la página o del archivo), la vista previa social del repositorio seguido, las imágenes de su README y, si hay coincidencia, la cabecera y la cápsula de Steam. No usa claves de API. La opción elegida se vuelve a localizar en el servidor (el cliente no envía una URL), se descarga, se valida con MIME y firma raster y, si supera 2 MiB o 4096 px, se redimensiona y se convierte a JPG. Se guarda en R2 privado con metadatos en D1 por usuario y juego, igual que una subida manual. Solo se contactan dominios de esa lista (Wikipedia/Wikimedia, GitHub y sus CDN de imágenes, y la CDN de Steam); un redirect hacia otro host se rechaza. SVG y otros formatos se rechazan. GET de portada y la búsqueda exigen la identidad del visitante y un juego seguido.
 - Releases, commits y PR tienen estados separados. Las revisiones de notas, archivos y estados vuelven a quedar sin leer.
 - Clasificación determinista por texto fuente: rendimiento, compatibilidad, instalación y jugabilidad. No usa IA ni afirma mejoras que no haya verificado. Siempre muestra evidencia, fecha y enlace original.
 - Consulta al abrir, volver a una pestaña y cada 30 minutos si está abierta. Refresco manual. Nunca solicita push.
@@ -55,6 +55,9 @@ Conservar integración `sites()` y `.openai/hosting.json`. Nunca guardar credenc
 - https://docs.github.com/en/rest/using-the-rest-api/best-practices-for-using-the-rest-api
 - https://github.com/Zelda64Recomp/Zelda64Recomp
 - https://github.com/HarbourMasters
+- https://www.mediawiki.org/wiki/API:Pageimages
+- https://www.mediawiki.org/wiki/API:Imageinfo
+- https://store.steampowered.com/api/storesearch
 
 ## Publicación y verificación
 

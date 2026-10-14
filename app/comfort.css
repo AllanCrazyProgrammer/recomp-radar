@@ -41,7 +41,7 @@
 .source-body pre { font-size: 13px; }
 .source-body small, .game-check, .game-check small,
 .comparison-limit, .installation-limit, .release-install > small,
-.cover-control > small, .library-toolbar > small,
+.cover-control > small, .cover-option small, .cover-search-status, .library-toolbar > small,
 .installed-current > span:not(.status-pill), .comparison-releases summary span,
 .latest-releases small { font-size: 12px; }
 .game-card-title h3 { font-size: 31px; }
@@ -65,6 +65,8 @@
 .desktop-footer { font-size: 12px; }
 .modal-title { font-size: 20px; }
 .modal h2 { font-size: 27px; }
+.cover-option span, .cover-option b { font-size: 14px; }
+@media (max-width: 430px) { .cover-search-button { font-size: 15px; } }
 .modal label { font-size: 14px; }
 .modal label small, .modal-tip, .form-error { font-size: 12px; }
 .suggestions b { font-size: 15px; }
