@@ -12,6 +12,20 @@
 @media(prefers-reduced-motion:reduce){.spinning{animation:none}.game-open,.game-art{transition:none}}
 
 .source-icon{flex-shrink:0;overflow:hidden}.source-icon img{width:100%;height:100%;object-fit:cover;display:block}
+.cover-search-dialog{width:min(680px,calc(100vw - 28px));max-width:100%;max-height:min(86dvh,760px);padding:0}
+.cover-search-dialog:not([open]){display:none}
+.cover-search-dialog[open]{display:flex;flex-direction:column}
+.cover-search-body{overflow:auto;padding:18px 18px 20px}
+.cover-search-status{min-height:1.4em}
+.cover-options{list-style:none;display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px;margin:12px 0 0;padding:0}
+.cover-option{display:flex;flex-direction:column;align-items:stretch;gap:6px;width:100%;min-height:44px;padding:8px;text-align:left;background:#fff;border:1px solid #c5d8e5;color:#345e77}
+.cover-option img,.cover-option-fallback{width:100%;height:96px;object-fit:cover;background:#d7e6ef}
+.cover-option-fallback{display:grid;place-items:center;font-size:11px;text-align:center;padding:8px}
+.cover-option span{font-size:12px;line-height:1.4;overflow-wrap:anywhere}
+.cover-option small{font-size:10px;color:#6d8796}
+.cover-option b{font-size:12px;color:#0b6ea8}
+.game-card-bottom .cover-search-button{flex:1 1 100%;justify-content:center;min-height:36px}
+@media(max-width:430px){.cover-options{grid-template-columns:1fr 1fr}.cover-option img,.cover-option-fallback{height:84px}.cover-search-button{min-height:42px}.cover-search-body{padding:14px}}
 
 .event-game-cover{display:block;flex-shrink:0}.event-game-cover .source-icon{width:48px;height:56px;border-radius:9px}.event-game-name{font-size:12px;font-weight:700;color:#285974}.event-game-name:hover{text-decoration:underline}@media(max-width:560px){.event-game-cover{margin-right:10px}.event-game-cover .source-icon{width:36px;height:44px;border-radius:7px}.event-game-name{font-size:11px;flex-basis:100%}}
 

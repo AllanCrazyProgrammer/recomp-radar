@@ -2,6 +2,7 @@ import {env} from 'cloudflare:workers';
 import {getChatGPTUser} from '../../chatgpt-auth';
 import {followedRepo} from '@/lib/radar';
 import {MAX_COVER_BYTES,validateCover} from '@/lib/cover-image';
+import {persistCover} from '@/lib/cover-store';
 export const dynamic='force-dynamic';
 const json=(value:unknown,status=200)=>Response.json(value,{status,headers:{'Cache-Control':'no-store'}});
 const storage=()=>{if(!env.DB||!env.BUCKET)throw new Error('El almacenamiento de portadas no está disponible.');return {db:env.DB,bucket:env.BUCKET};};
@@ -36,14 +37,7 @@ export async function POST(request:Request){
     const repo=(await followedRepo(user.userId,form.get('repo'))).toLowerCase();
     if(value.size>MAX_COVER_BYTES)throw new Error('La portada debe pesar como máximo 2 MB.');
     const bytes=new Uint8Array(await value.arrayBuffer());const {mime}=validateCover(bytes,value.type);validInput=true;
-    const {db,bucket}=storage();
-    const previous=await db.prepare('SELECT object_key FROM game_covers WHERE user_id=? AND repo=?').bind(user.userId,repo).first<{object_key:string}>();
-    const key='covers/'+crypto.randomUUID();const updatedAt=new Date().toISOString();
-    await bucket.put(key,bytes,{httpMetadata:{contentType:mime}});
-    try{await db.prepare('INSERT INTO game_covers(user_id,repo,object_key,mime,bytes,updated_at) VALUES(?,?,?,?,?,?) ON CONFLICT(user_id,repo) DO UPDATE SET object_key=excluded.object_key,mime=excluded.mime,bytes=excluded.bytes,updated_at=excluded.updated_at').bind(user.userId,repo,key,mime,bytes.length,updatedAt).run();}
-    catch(e){await bucket.delete(key);throw e;}
-    if(previous)await bucket.delete(previous.object_key);
-    return json({ok:true,repo,updatedAt});
+    return json(await persistCover(user.userId,repo,bytes,mime));
   }catch(e){return json({error:validInput?'No se pudo guardar la portada. Intenta de nuevo.':e instanceof Error?e.message:'Solicitud de portada inválida.'},validInput?503:400);}
 }
 export async function DELETE(request:Request){
