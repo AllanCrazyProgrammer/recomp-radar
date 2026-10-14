@@ -5,6 +5,7 @@ import {summarizeEvent} from '@/lib/event-summary';
 import {releaseTag} from '@/lib/library';
 import {guideReadme,projectGuide,type GuidePlatform} from '@/lib/project-guides';
 import {RepositoryGuide} from './repository-guide';
+import {staggerStyle} from './animated-view';
 
 const tabs=[{id:'version',label:'Versión'},{id:'install',label:'Instalación'},{id:'update',label:'Actualizar'}] as const;
 type Tab=typeof tabs[number]['id'];
@@ -29,13 +30,13 @@ export function ReleaseInfo({event}:{event:RadarEvent}){
   else return;
   event.preventDefault();setTab(tabs[next].id);buttons.current[next]?.focus();
  }
- const version=<><span className="impact-label">{event.kind==='release'?'QUÉ INCLUYE ESTA VERSIÓN':'DETALLE DEL CAMBIO'}</span><p className="summary-status">{summary.status}{event.kind!=='release'?' · No es una publicación de versión.':''}</p>{summary.points.length?<ul className="release-summary">{summary.points.map((point,index)=><li key={index}><strong>{point.section}</strong><span>{point.text}</span></li>)}</ul>:<p>{event.kind==='release'?'Esta release no incluye notas detalladas. Consulta sus archivos y la fuente original.':event.title}</p>}<div className="impact-tags">{impact.tags.map(t=><span key={t}>{t}</span>)}{summary.points.length>0&&<small>{summary.language==='es'?'Resumen en español · basado en las notas originales':'Extractos de las notas originales'}</small>}</div></>;
+ const version=<><span className="impact-label">{event.kind==='release'?'QUÉ INCLUYE ESTA VERSIÓN':'DETALLE DEL CAMBIO'}</span><p className="summary-status">{summary.status}{event.kind!=='release'?' · No es una publicación de versión.':''}</p>{summary.points.length?<ul className="release-summary">{summary.points.map((point,index)=><li key={index} className="stagger-item" style={staggerStyle(index)}><strong>{point.section}</strong><span>{point.text}</span></li>)}</ul>:<p>{event.kind==='release'?'Esta release no incluye notas detalladas. Consulta sus archivos y la fuente original.':event.title}</p>}<div className="impact-tags">{impact.tags.map(t=><span key={t}>{t}</span>)}{summary.points.length>0&&<small>{summary.language==='es'?'Resumen en español · basado en las notas originales':'Extractos de las notas originales'}</small>}</div></>;
  if(event.kind!=='release')return <div className="impact">{version}</div>;
  return <div className="impact release-info">
   <div className="release-info-tabs" role="tablist" aria-label={`Información de ${tag??event.title} · ${event.repo}`}>
    {tabs.map((item,index)=><button key={item.id} id={`${id}-${item.id}`} ref={button=>{buttons.current[index]=button;}} role="tab" aria-selected={tab===item.id} aria-controls={`${id}-panel`} tabIndex={tab===item.id?0:-1} onClick={()=>setTab(item.id)} onKeyDown={e=>onKey(e,index)}>{item.label}</button>)}
   </div>
-  <div id={`${id}-panel`} role="tabpanel" aria-labelledby={`${id}-${tab}`} tabIndex={0} className="release-info-panel">
+  <div key={tab} id={`${id}-panel`} role="tabpanel" aria-labelledby={`${id}-${tab}`} tabIndex={0} className="release-info-panel animated-tab-panel">
    {tab==='version'?version:<div className="project-guide">
     <div className="guide-heading"><div><span className="impact-label">{tab==='install'?'CÓMO INSTALAR':'CÓMO ACTUALIZAR'}</span><h4>{guide?.project??event.repo}</h4></div>{guide&&<label htmlFor={`${id}-platform`}>Tu sistema <select id={`${id}-platform`} value={selected} onChange={e=>setPlatform(e.target.value as GuidePlatform)}>{platforms.map(p=><option key={p}>{p}</option>)}</select></label>}</div>
     {guide&&<p className="guide-version">Guía del proyecto · documentación de {guide.reviewedTag} · revisada el 4 oct 2026</p>}

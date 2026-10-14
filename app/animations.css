@@ -1,0 +1,587 @@
+/* Sistema de animaciones, transiciones y micro-interacciones responsivas para Recomp Radar. */
+
+:root {
+  --anim-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --anim-ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --anim-duration-fast: 160ms;
+  --anim-duration-base: 260ms;
+  --anim-duration-slow: 420ms;
+}
+
+/* ==========================================================================
+   1. Control de animaciones en la barra de ventana (.motion-toggle)
+   ========================================================================== */
+.motion-toggle {
+  margin-left: 14px;
+  min-height: 30px;
+  padding: 5px 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: 14px "Pixelify Sans", monospace;
+  color: #111;
+  background: #c0c0c0;
+  border: 1px solid #404040;
+  box-shadow: var(--retro-raised);
+  flex-shrink: 0;
+  transition: background-color var(--anim-duration-fast) ease,
+    transform var(--anim-duration-fast) ease;
+}
+
+.motion-toggle + .sound-toggle {
+  margin-left: 8px;
+}
+
+.motion-toggle:hover,
+.sound-toggle:hover,
+.help-button:hover {
+  background: #d4d4d4;
+}
+
+.motion-toggle:active {
+  box-shadow: var(--retro-inset);
+  transform: translateY(1px);
+}
+
+.motion-toggle:focus-visible {
+  outline-color: #fff;
+}
+
+.motion-toggle[aria-pressed="true"] .motion-toggle-icon {
+  animation: sparkle-tilt 3.2s ease-in-out infinite;
+}
+
+/* ==========================================================================
+   2. Radar SVG animado y Orbe principal
+   ========================================================================== */
+.radar-svg {
+  display: block;
+}
+
+.radar-sweep-beam {
+  transform-origin: 32px 40px;
+  animation: radar-sweep 4s linear infinite;
+}
+
+.radar-svg.is-scanning .radar-sweep-beam {
+  animation-duration: 1.35s;
+}
+
+.radar-ping-wave {
+  transform-origin: 32px 40px;
+  animation: radar-ring-expand 2.8s var(--anim-ease-out) infinite;
+}
+
+.radar-svg.is-scanning .radar-ping-wave {
+  animation-duration: 1.2s;
+}
+
+.radar-blip {
+  animation: radar-blip-pulse 4s ease-in-out infinite;
+}
+
+.radar-blip-1 {
+  animation-delay: 0.25s;
+}
+
+.radar-blip-2 {
+  animation-delay: 1.65s;
+}
+
+.radar-blip-3 {
+  animation-delay: 2.55s;
+}
+
+.radar-svg.is-scanning .radar-blip {
+  animation-duration: 1.35s;
+}
+
+.radar-chassis-led {
+  animation: radar-led-blink 2.2s steps(2, end) infinite;
+}
+
+.radar-svg.is-scanning .radar-chassis-led {
+  animation-duration: 0.6s;
+}
+
+.radar-orb.hero-orb {
+  animation: orb-float 4.6s ease-in-out infinite;
+}
+
+.radar-orb.is-scanning {
+  filter: drop-shadow(0 0 8px rgba(80, 239, 0, 0.35));
+}
+
+/* ==========================================================================
+   3. Barra superior de escaneo (.sync-scan-bar) e indicadores en vivo
+   ========================================================================== */
+.sync-scan-bar {
+  position: relative;
+  height: 0;
+  overflow: hidden;
+  background: #000080;
+  transition: height var(--anim-duration-base) var(--anim-ease-out);
+}
+
+.sync-scan-bar.is-active {
+  height: 4px;
+  border-bottom: 1px solid #404040;
+}
+
+.sync-scan-runner {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -35%;
+  width: 35%;
+  background: linear-gradient(90deg, transparent, #00ff44, #fff34b, transparent);
+  animation: scan-runner 1.35s ease-in-out infinite;
+}
+
+.live-dot {
+  animation: live-dot-pulse 2.6s ease-in-out infinite;
+}
+
+.live-dot.is-syncing {
+  background: #00ff00;
+  animation: live-dot-pulse 0.85s ease-in-out infinite;
+}
+
+/* ==========================================================================
+   4. Contadores numéricos (.animated-counter)
+   ========================================================================== */
+.animated-counter {
+  display: inline-block;
+  font-variant-numeric: tabular-nums;
+  transition: transform var(--anim-duration-base) var(--anim-ease-spring),
+    color var(--anim-duration-base) ease;
+}
+
+.animated-counter.is-bumping {
+  animation: counter-bump 360ms var(--anim-ease-spring);
+}
+
+/* ==========================================================================
+   5. Transiciones de vista, pestañas y entrada escalonada (.stagger-item)
+   ========================================================================== */
+.animated-view {
+  animation: view-enter var(--anim-duration-base) var(--anim-ease-out) both;
+}
+
+.animated-tab-panel {
+  animation: tab-panel-enter 200ms var(--anim-ease-out) both;
+}
+
+.stagger-item {
+  animation: stagger-fade-in 320ms var(--anim-ease-out) both;
+  animation-delay: calc(var(--stagger-index, 0) * 42ms);
+}
+
+/* Paneles condicionales, alertas y diálogos */
+.help-panel,
+.message,
+.auth-panel,
+.source-body,
+.friend-radar,
+.mobile-collection .collection-list {
+  animation: panel-expand 220ms var(--anim-ease-out) both;
+}
+
+.add-dialog[open] {
+  animation: dialog-pop 220ms var(--anim-ease-spring) both;
+}
+
+.add-dialog[open]::backdrop {
+  animation: backdrop-fade 180ms ease both;
+}
+
+details[open] > *:not(summary) {
+  animation: tab-panel-enter 180ms var(--anim-ease-out) both;
+}
+
+/* ==========================================================================
+   6. Micro-interacciones en tarjetas, botones e iconos
+   ========================================================================== */
+.game-card,
+.event-card,
+.download-file,
+.latest-releases > a,
+.game-update-notice,
+.suggestions button,
+.nav-item,
+.source-select,
+.primary,
+.secondary,
+.add-source,
+.icon-button,
+.tabs button,
+.release-info-tabs button {
+  transition: transform var(--anim-duration-fast) var(--anim-ease-out),
+    background-color var(--anim-duration-fast) ease,
+    border-color var(--anim-duration-fast) ease,
+    box-shadow var(--anim-duration-fast) ease;
+}
+
+.ui-icon {
+  transition: transform var(--anim-duration-base) var(--anim-ease-spring);
+}
+
+.game-art img,
+.game-emblem,
+.source-icon {
+  transition: transform var(--anim-duration-base) var(--anim-ease-out);
+}
+
+.update-badge {
+  animation: badge-attention 3.2s ease-in-out infinite;
+}
+
+.icon-button.is-star .ui-icon-star {
+  animation: star-pop 340ms var(--anim-ease-spring);
+}
+
+.welcome-icon {
+  animation: welcome-bob 3.8s ease-in-out infinite;
+}
+
+/* Interacciones de puntero solo en dispositivos con soporte hover */
+@media (hover: hover) {
+  .game-card:hover {
+    transform: translateY(-3px);
+    box-shadow: inset 1px 1px #fff, inset -1px -1px #808080, 3px 4px 0 #004040;
+  }
+
+  .game-card:hover .game-emblem {
+    transform: scale(1.08) rotate(-4deg);
+  }
+
+  .game-card:hover .game-art img {
+    transform: scale(1.04);
+  }
+
+  .game-open:hover .game-card-meta .ui-icon-arrow,
+  .event-card h3 a:hover .ui-icon-arrow,
+  .event-footer a:hover .ui-icon-arrow,
+  .repo-link:hover .ui-icon-arrow,
+  .download-file:hover .ui-icon-arrow,
+  .latest-releases > a:hover .ui-icon-arrow,
+  .game-update-notice:hover .ui-icon-arrow,
+  .friend-games a:hover .ui-icon-arrow,
+  .update-badge:hover .ui-icon-arrow {
+    transform: translate(2px, -2px);
+  }
+
+  .back-link:hover .ui-icon-back {
+    transform: translateX(-3px);
+  }
+
+  .primary:hover .ui-icon-plus,
+  .add-source:hover .ui-icon-plus,
+  .sidebar-heading .icon-button:hover .ui-icon-plus,
+  .suggestions button:hover .ui-icon-plus,
+  .upload-label:hover .ui-icon-plus {
+    transform: rotate(90deg) scale(1.1);
+  }
+
+  .secondary:hover:not(:disabled) .ui-icon-refresh {
+    transform: rotate(65deg);
+  }
+
+  .event-card:hover {
+    transform: translateY(-2px);
+    box-shadow: inset 1px 1px #fff, inset -1px -1px #808080, 2px 3px 0 #004040;
+  }
+
+  .download-file:hover,
+  .latest-releases > a:hover,
+  .suggestions button:hover,
+  .game-update-notice:hover {
+    transform: translateY(-2px);
+  }
+
+  .nav-item:hover:not(.active) {
+    transform: translateX(2px);
+  }
+
+  .source-select:hover .source-icon {
+    transform: scale(1.07);
+  }
+
+  .stat-item:hover .stat-icon .ui-icon {
+    transform: scale(1.14);
+  }
+}
+
+/* Respuesta táctil y de clic activa */
+.primary:active:not(:disabled),
+.secondary:active:not(:disabled),
+.add-source:active:not(:disabled),
+.suggestions button:active:not(:disabled),
+.help-button:active:not(:disabled),
+.sound-toggle:active:not(:disabled),
+.tabs button:active:not(:disabled),
+.release-info-tabs button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+/* ==========================================================================
+   7. Keyframes
+   ========================================================================== */
+@keyframes radar-sweep {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes radar-ring-expand {
+  0% {
+    transform: scale(0.35);
+    opacity: 0.85;
+  }
+  80% {
+    opacity: 0.2;
+  }
+  100% {
+    transform: scale(2.6);
+    opacity: 0;
+  }
+}
+
+@keyframes radar-blip-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  20%,
+  45% {
+    opacity: 1;
+    filter: drop-shadow(0 0 2px #fff34b);
+  }
+}
+
+@keyframes radar-led-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.2;
+  }
+}
+
+@keyframes orb-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes scan-runner {
+  0% {
+    left: -35%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+@keyframes live-dot-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.25);
+    opacity: 0.65;
+  }
+}
+
+@keyframes counter-bump {
+  0% {
+    transform: scale(1);
+  }
+  45% {
+    transform: scale(1.22);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes view-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes tab-panel-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes stagger-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes panel-expand {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes dialog-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes backdrop-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes badge-attention {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-1px);
+  }
+}
+
+@keyframes star-pop {
+  0% {
+    transform: scale(0.75) rotate(-15deg);
+  }
+  60% {
+    transform: scale(1.25) rotate(8deg);
+  }
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@keyframes welcome-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes sparkle-tilt {
+  0%,
+  100% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(15deg) scale(1.1);
+  }
+}
+
+/* ==========================================================================
+   8. Ajustes responsivos para tablet y móvil
+   ========================================================================== */
+@media (max-width: 800px) {
+  .stagger-item {
+    animation-duration: 240ms;
+    animation-delay: calc(var(--stagger-index, 0) * 30ms);
+  }
+
+  .animated-view {
+    animation-duration: 200ms;
+  }
+}
+
+@media (max-width: 560px) {
+  .motion-toggle {
+    margin-left: auto;
+    padding: 5px;
+    min-width: 30px;
+    justify-content: center;
+  }
+
+  .motion-toggle span {
+    display: none;
+  }
+
+  .motion-toggle + .sound-toggle {
+    margin-left: 8px;
+  }
+
+  .radar-orb.hero-orb {
+    animation-name: orb-float-mobile;
+    animation-duration: 4s;
+  }
+
+  @keyframes orb-float-mobile {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-3px);
+    }
+  }
+}
+
+/* ==========================================================================
+   9. Accesibilidad: pausa manual (data-motion="off") y prefers-reduced-motion
+   ========================================================================== */
+html[data-motion="off"] *,
+html[data-motion="off"] *::before,
+html[data-motion="off"] *::after {
+  animation: none !important;
+  transition: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:not([data-motion="on"]) *,
+  html:not([data-motion="on"]) *::before,
+  html:not([data-motion="on"]) *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
