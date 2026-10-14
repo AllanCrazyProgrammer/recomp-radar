@@ -5,6 +5,7 @@ import {releaseOverview,releaseTag,installationFromRelease,type LibraryGame} fro
 import {summarizeEvent} from '@/lib/event-summary';
 import type {RepoCheck} from '@/hooks/use-radar';
 import {Icon,when} from './radar-icons';
+import {staggerStyle} from './animated-view';
 
 export function Downloads({event,compact=false}:{event:RadarEvent;compact?:boolean}){
  const [platform,setPlatform]=useState('all');
@@ -16,7 +17,7 @@ export function Downloads({event,compact=false}:{event:RadarEvent;compact?:boole
  if(!files.length)return <div className="download-empty"><a href={event.url} target="_blank" rel="noreferrer">{event.assets?'Ver archivos en GitHub':'Consultar publicación en GitHub'} <Icon name="arrow" size={12}/></a></div>;
  return <section className={'release-downloads '+(compact?'compact':'')} aria-label={'Descargas de '+(releaseTag(event)??event.title)}>
   <div className="download-heading"><strong>Descargas para tu equipo</strong>{platforms.length>1&&<label>Plataforma <select value={selected} onChange={e=>setPlatform(e.target.value)}><option value="all">Todas</option>{platforms.map(p=><option key={p}>{p}</option>)}</select></label>}</div>
-  <div className="download-files">{visible.map(file=><a className="download-file" key={file.url} href={file.url} target="_blank" rel="noreferrer"><span><Icon name="release" size={16}/><b>{file.platform}{file.architecture?' · '+file.architecture:''}</b></span><small>{file.name}</small><small>{file.size>0?(file.size/1024/1024).toLocaleString('es-MX',{maximumFractionDigits:1})+' MB':'Archivo de la release'} <Icon name="arrow" size={12}/></small></a>)}</div>
+  <div className="download-files">{visible.map((file,index)=><a className="download-file stagger-item" style={staggerStyle(index)} key={file.url} href={file.url} target="_blank" rel="noreferrer"><span><Icon name="release" size={16}/><b>{file.platform}{file.architecture?' · '+file.architecture:''}</b></span><small>{file.name}</small><small>{file.size>0?(file.size/1024/1024).toLocaleString('es-MX',{maximumFractionDigits:1})+' MB':'Archivo de la release'} <Icon name="arrow" size={12}/></small></a>)}</div>
  </section>;
 }
 
@@ -24,7 +25,7 @@ export function GameCheck({check,error,pending=false,retryAt}:{check?:RepoCheck;
  const timestamp=check?.releasesAt??check?.lastSync;
  const hasError=!!(check?.error||error);
  return <div className={'game-check '+(pending||hasError?'pending':'')}>
-  <Icon name={pending||hasError?'refresh':'check'} size={13}/><span>{pending?(retryAt?'Consulta pendiente · GitHub en pausa':'Consulta en curso'):hasError?'Consulta incompleta · actualización pendiente':timestamp?'Releases consultadas · '+when(timestamp):'Primera consulta pendiente'}
+  <span className={pending&&!retryAt?'spinning':''}><Icon name={pending||hasError?'refresh':'check'} size={13}/></span><span>{pending?(retryAt?'Consulta pendiente · GitHub en pausa':'Consulta en curso'):hasError?'Consulta incompleta · actualización pendiente':timestamp?'Releases consultadas · '+when(timestamp):'Primera consulta pendiente'}
   {(pending||hasError)&&timestamp&&<small>Últimos datos guardados · {when(timestamp)}</small>}
   {pending&&retryAt&&<small>Reintento · {when(new Date(retryAt).toISOString())}</small>}</span>
  </div>;
