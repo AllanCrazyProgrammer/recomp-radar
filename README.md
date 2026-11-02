@@ -75,6 +75,10 @@ La tipografía de títulos y controles es Pixelify Sans, alojada con la app (sin
 
 `app/comfort.css` amplía títulos, notas y controles y adapta el texto a móvil. Los cursores nativos pixelados (flecha, mano y selección de texto) están en `public/cursors`. Las grabaciones locales en `public/sounds` son breves y de volumen bajo: clic clásico de ratón (pulsar y soltar) y dos variantes reales de teclado mecánico. Las cuatro voces de escritura permiten escuchar el final de cada tecla mientras se teclea rápido. Las fuentes CC0 y las adaptaciones están documentadas en `public/sounds/LICENSE.md`. El botón Sonido permite silenciarlos y guarda la preferencia en el navegador; no se reproduce audio al cargar la página.
 
+## Ideas inspiradas en Quiver Launcher
+
+Recomp Radar reimplementa desde cero ideas de recomendación de archivos, alternativas visuales para la biblioteca y preferencias de vista. No se copió código, texto, nombres, iconos ni recursos de Quiver Launcher, de Thomas Georgiadis, publicado bajo la licencia Business Source License 1.1 (BSL 1.1).
+
 ## Pestañas de instalación y actualización
 
 Cada release tiene Versión, Instalación y Actualizar encima del resumen, también en el detalle individual. Cualquier repositorio seguido obtiene instrucciones de su propio README y hasta dos guías Markdown/texto enlazadas dentro del mismo repo y referencia. La consulta autenticada `/api/project-guide` valida la fuente seguida y la release capturada; no permite elegir URLs o referencias arbitrarias. Primero busca la etiqueta de esa release y, si falta, usa la rama actual con una advertencia explícita. Extrae requisitos, instalación y actualización; conserva comandos y enlaces como texto de consulta, sin ejecutarlos ni renderizar HTML remoto. Los extractos conservan el idioma original. Si no existen pasos de actualización documentados, muestra las notas de la release y lo indica, sin inventar un procedimiento.
