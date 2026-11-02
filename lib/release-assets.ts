@@ -1,21 +1,32 @@
 export type ReleaseDownload={name:string;url:string;size:number;platform:'Windows'|'macOS'|'Linux'|'Android'|'Otros archivos';architecture:string|null};
-
-export function releaseDownloads(repo:string,tag:string,assets:unknown):ReleaseDownload[]{
- if(!Array.isArray(assets))return [];
- const seen=new Set<string>();const result:ReleaseDownload[]=[];
- for(const raw of assets.slice(0,100)){
-  if(!raw||typeof raw!=='object')continue;
-  const asset=raw as Record<string,unknown>;
-  if(typeof asset.name!=='string'||!asset.name||asset.name.length>240||typeof asset.browser_download_url!=='string'||asset.state==='new')continue;
-  try{
-   const url=new URL(asset.browser_download_url);const parts=url.pathname.split('/').slice(1).map(decodeURIComponent);
-   if(url.protocol!=='https:'||url.hostname!=='github.com'||url.username||url.password||url.port||url.search||url.hash||parts.length!==6||parts.slice(0,2).join('/').toLowerCase()!==repo.toLowerCase()||parts[2]!=='releases'||parts[3]!=='download'||parts[4]!==tag||parts[5]!==asset.name||seen.has(url.href))continue;
-   const name=asset.name.toLowerCase();
-   const extra=/(?:^|[-_.])(mods?|symbols?|debug|source|checksum)(?:[-_.]|$)/.test(name)||/\.(sha256|txt|nrm)$/.test(name);
-   const platform=extra?'Otros archivos':/\.apk$/.test(name)||/android/.test(name)?'Android':/windows|win32|win64|(?:^|[-_.])win(?:[-_.]|$)|\.(exe|msi|msix)$/.test(name)?'Windows':/macos|darwin|osx|\.(dmg|pkg)$/.test(name)?'macOS':/linux|\.appimage$/.test(name)?'Linux':'Otros archivos';
-   const architecture=/aarch64|arm64/.test(name)?'ARM64':/x86[-_]64|amd64|x64/.test(name)?'x64':/universal/.test(name)?'Universal':null;
-   seen.add(url.href);result.push({name:asset.name,url:url.href,size:typeof asset.size==='number'&&Number.isFinite(asset.size)&&asset.size>=0?asset.size:0,platform,architecture});
-  }catch{continue;}
- }
- return result;
+export type VisitorOS='Windows'|'macOS'|'Linux'|'Android';
+export type VisitorArch='x64'|'ARM64'|'x86'|'unknown';
+export type VisitorPlatform={os:VisitorOS;arch:VisitorArch};
+export type InstallMemory={fragment:string;kind:'msi'|'files'};
+const ext=(n:string)=>n.toLowerCase().match(/\.([a-z0-9]+)$/)?.[1]??'';
+const format=(n:string)=>{const s=n.toLowerCase();if(/\.(zip|7z|tar\.gz|tgz|tar\.xz|txz|tar\.zst|tar\.bz2|tar|rar|appimage|flatpak|exe|apk|msi)$/.test(s)){const e=s.match(/\.(tar\.(?:gz|xz|zst|bz2)|tgz|txz|zip|7z|tar|rar|appimage|flatpak|exe|apk|msi)$/)?.[1]??'';return ['zip','7z','tar.gz','tgz','tar.xz','txz','tar.zst','tar.bz2','tar','rar','appimage','flatpak','exe','apk','msi'].indexOf(e);}return ext(n)&&/^[a-z]{1,5}$/i.test(ext(n))?99:15;};
+const auxiliary=(n:string)=>/(?:\.sha\w*|\.md5|\.sig|\.asc|\.minisig|\.pdb|\.json|\.txt)$/i.test(n)||/(?:^|[-_. ])(?:checksum|checksums|debug|symbols?|source|sources|src)(?:$|[-_. ])/i.test(n);
+const archRank=(a:string|null,v:VisitorPlatform['arch'])=>{const x=(a??'').toLowerCase();if(!x||x==='universal')return 1;if(x===v.toLowerCase())return 0;if(v==='x64'&&x==='x86')return 2;return 99;};
+export function normalizeVariant(name:string):string{return name.toLowerCase().replace(/\.(?:zip|7z|tar\.[a-z]+|tgz|txz|appimage|flatpak|exe|apk|msi)$/i,'').replace(/(?:v?\d+(?:\.\d+)+(?:[-+][\w.-]+)?)/gi,'').replace(/(?:windows|win32|win64|win|macos|darwin|osx|linux|android|universal|x86[-_]?64|amd64|x64|aarch64|arm64|i[3-6]86|x86)/gi,'').replace(/[^a-z0-9]+/g,' ').trim();}
+export function preferredInstallMemory(file:ReleaseDownload,files:ReleaseDownload[]):InstallMemory {const kind=/\.msi$/i.test(file.name)?'msi':'files';const cleaned=normalizeVariant(file.name);const words=cleaned.split(/\s+/).filter(Boolean);let fragment='';for(let i=0;i<words.length;i++)for(let j=i+1;j<=words.length;j++){const candidate=words.slice(i,j).join(' ');if(candidate.length>fragment.length&&!files.some(other=>other!==file&&normalizeVariant(other.name).includes(candidate)))fragment=candidate;}return{fragment,kind};}
+export function rankInstallAssets(files:ReleaseDownload[],visitor:VisitorPlatform,preferred?:string|null,memory?:InstallMemory){
+ const groups:ReleaseDownload[][]=[files.filter(f=>f.platform===visitor.os),files.filter(f=>f.platform==='Otros archivos'),...(visitor.os==='Linux'?[files.filter(f=>f.platform==='Windows')]:[])];
+ let group:ReleaseDownload[]=[];for(const candidate of groups){const valid=candidate.filter(f=>!auxiliary(f.name)&&archRank(f.architecture,visitor.arch)<99&&!(format(f.name)===14&&visitor.os!=='Windows')&&!(format(f.name)===13&&visitor.os!=='Android'));if(valid.length){group=valid;break;}}
+ const pref=preferred??memory?.fragment;const kind=memory?.kind;
+ const memoryMatches=pref?group.filter(file=>normalizeVariant(file.name).includes(pref)):[];
+ const useMemory=memoryMatches.length===1;
+ const kindFiles=kind?group.filter(f=>(kind==='msi')===/\.msi$/i.test(f.name)):[];
+ if(kindFiles.length)group=kindFiles;
+ const scored=group.map(file=>({file,arch:archRank(file.architecture,visitor.arch),format:format(file.name),memory:useMemory&&memoryMatches[0]===file?0:1})).sort((a,b)=>a.arch-b.arch||(useMemory?a.memory-b.memory:a.format-b.format)||a.file.name.localeCompare(b.file.name));
+ const best=scored.length?scored.filter(x=>x.arch===scored[0].arch&&(useMemory?x.memory===scored[0].memory:x.format===scored[0].format)).map(x=>x.file):[];
+ return {ranked:scored.map(x=>x.file),best};
 }
+export function artFallbackOrder(type:'cover'|'box'|'header'|'icon',images:Partial<Record<'custom'|'cover'|'box'|'header'|'icon',string|null>>):{src:string;fit:'fill'|'letterbox'|'icon'|'placeholder'}[]{const order:('cover'|'box'|'header'|'icon')[]=type==='box'?['box','header','icon']:type==='icon'?['icon','cover']:type==='header'?['header','box','icon']:['cover','box','header','icon'];const seen=new Set<string>();const result:{src:string;fit:'fill'|'letterbox'|'icon'|'placeholder'}[]=[];for(const key of ['custom',...order] as const){const src=images[key];if(src&&!seen.has(src)){seen.add(src);result.push({src,fit:key==='icon'?'icon':key==='header'?'letterbox':'fill'});}}return [...result,{src:'placeholder',fit:'placeholder'}];}
+export type LibraryViewOptions={layout:'grid'|'list';image:'cover'|'box'|'header'|'icon';size:'small'|'medium'|'large';showNames:boolean;sort:'release'|'az'|'installed';installed:'all'|'installed'|'missing'};
+export const DEFAULT_LIBRARY_VIEW:LibraryViewOptions={layout:'grid',image:'box',size:'medium',showNames:true,sort:'az',installed:'all'};
+export function parseLibraryViewOptions(value:unknown):LibraryViewOptions{if(!value||typeof value!=='object')return DEFAULT_LIBRARY_VIEW;const v=value as Record<string,unknown>;return{layout:v.layout==='list'?'list':'grid',image:['cover','header','icon'].includes(String(v.image))?v.image as LibraryViewOptions['image']:'box',size:v.size==='small'||v.size==='large'?v.size:'medium',showNames:typeof v.showNames==='boolean'?v.showNames:true,sort:['release','installed'].includes(String(v.sort))?v.sort as LibraryViewOptions['sort']:'az',installed:v.installed==='installed'||v.installed==='missing'?v.installed:'all'};}
+export function compareLibraryNames(a:string,b:string):number{const strip=(s:string)=>s.replace(/^(?:the|a|an|el|la|los|las)\s+/i,'');return new Intl.Collator('es',{numeric:true,sensitivity:'base'}).compare(strip(a),strip(b));}
+export function parseChecksumFile(text:string,filename:string):string|null{const base=filename.replace(/\.(?:sha256|sha)$/i,'');for(const line of text.split(/\r?\n/)){const m=line.trim().match(/^([a-f\d]{64})\s+\*?(.+?)\s*$/i);if(m&&(!base||m[2]===base||/SHA256SUMS/i.test(filename)))return m[1].toLowerCase();const bare=line.trim().match(/^([a-f\d]{64})$/i);if(bare&&(!base||/SHA256SUMS/i.test(filename)))return bare[1].toLowerCase();}return null;}
+export function bytesToHex(bytes:ArrayBuffer):string{return [...new Uint8Array(bytes)].map(v=>v.toString(16).padStart(2,'0')).join('');}
+export function detectVisitorPlatform(userAgent:string,data?:{platform?:string;architecture?:string;bitness?:string}):VisitorPlatform{const l=(data?.platform||userAgent).toLowerCase();const os:VisitorOS=l.includes('android')?'Android':l.includes('win')?'Windows':l.includes('mac')?'macOS':'Linux';const a=(data?.architecture||'').toLowerCase(),ua=userAgent.toLowerCase();const arch:VisitorArch=/arm|aarch64/.test(a)?'ARM64':/x86|amd64|x64/.test(a)?(data?.bitness==='32'?'x86':'x64'):/arm|aarch64/.test(ua)?'ARM64':/x86_64|amd64|x64|wow64/.test(ua)?'x64':/i[3-6]86|x86/.test(ua)?'x86':'unknown';return{os,arch};}
+export function releaseDownloads(repo:string,tag:string,assets:unknown):ReleaseDownload[]{if(!Array.isArray(assets))return[];const seen=new Set<string>(),result:ReleaseDownload[]=[];for(const raw of assets.slice(0,100)){if(!raw||typeof raw!=='object')continue;const a=raw as Record<string,unknown>;if(typeof a.name!=='string'||!a.name||a.name.length>240||typeof a.browser_download_url!=='string'||a.state==='new')continue;try{const u=new URL(a.browser_download_url),p=u.pathname.split('/').slice(1).map(decodeURIComponent);if(u.protocol!=='https:'||u.hostname!=='github.com'||u.username||u.password||u.port||u.search||u.hash||p.length!==6||p.slice(0,2).join('/').toLowerCase()!==repo.toLowerCase()||p[2]!=='releases'||p[3]!=='download'||p[4]!==tag||p[5]!==a.name||seen.has(u.href))continue;const n=a.name.toLowerCase(),other=auxiliary(n)||/\.(sha256|txt|nrm)$/.test(n);const platform=other?'Otros archivos':/\.apk$|android/.test(n)?'Android':/windows|win32|win64|(?:^|[-_.])win(?:[-_.]|$)|\.(exe|msi|msix)$/.test(n)?'Windows':/macos|darwin|osx|\.(dmg|pkg)$/.test(n)?'macOS':/linux|\.appimage$/.test(n)?'Linux':'Otros archivos';const architecture=/aarch64|arm64/.test(n)?'ARM64':/x86[-_]64|amd64|x64/.test(n)?'x64':/i[3-6]86|(?:^|[-_.])x86(?:[-_.]|$)/.test(n)?'x86':/universal/.test(n)?'Universal':null;seen.add(u.href);result.push({name:a.name,url:u.href,size:typeof a.size==='number'&&a.size>=0?a.size:0,platform,architecture});}catch{}}return result;}
