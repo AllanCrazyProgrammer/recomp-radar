@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {DatabaseSync, type SQLInputValue} from 'node:sqlite';
-import {readFileSync,readdirSync} from 'node:fs';
+import {readFileSync} from 'node:fs';
 import {createGithubClient} from '../lib/github-client.ts';
 import {GithubRateLimitError} from '../lib/github-rate.ts';
 import {syncTargets,persistEvents} from '../lib/sync.ts';
@@ -10,7 +10,7 @@ import type {Target} from '../lib/domain.ts';
 
 function fixture(count=1) {
   const sql=new DatabaseSync(':memory:');
-  for(const name of readdirSync(new URL('../drizzle/',import.meta.url)).filter(n=>n.endsWith('.sql')).sort())sql.exec(readFileSync(new URL('../drizzle/'+name,import.meta.url),'utf8'));
+  sql.exec(readFileSync(new URL('./fixtures/legacy-schema.sql',import.meta.url),'utf8'));
   let eventWrites=0,batches=0,reads=0;
   const prepare=(query:string)=>{
     let values:SQLInputValue[]=[];

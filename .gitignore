@@ -13,9 +13,8 @@
 # testing
 /coverage
 
-# next.js
+# generated builds
 /.next/
-/.vinext/
 /out/
 
 # misc
@@ -38,8 +37,8 @@ yarn-error.log*
 next-env.d.ts
 /dist/
 /.wrangler/
-# Checkout-local execution profile and tool state; never publish them.
 /.sites-runtime/
+/firebase-debug.log
 /.agents/
 /.codex/
 /outputs/
@@ -47,3 +46,7 @@ next-env.d.ts
 
 # TypeScript incremental build cache
 *.tsbuildinfo
+!.env.example
+/firestore-debug.log
+/ui-debug.log
+/auth-debug.log

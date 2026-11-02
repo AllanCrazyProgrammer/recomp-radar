@@ -1,0 +1,37 @@
+rules_version = '2';
+service cloud.firestore {
+ match /databases/{database}/documents {
+  function signed() { return request.auth != null; }
+  function owner(uid) { return signed() && request.auth.uid == uid; }
+  function accepted(ownerUid) { return signed() && exists(/databases/$(database)/documents/users/$(ownerUid)/friends/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(ownerUid)/friends/$(request.auth.uid)).data.state == 'friend' && exists(/databases/$(database)/documents/users/$(request.auth.uid)/friends/$(ownerUid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)/friends/$(ownerUid)).data.state == 'friend' && !exists(/databases/$(database)/documents/users/$(ownerUid)/blocks/$(request.auth.uid)) && !exists(/databases/$(database)/documents/users/$(request.auth.uid)/blocks/$(ownerUid)); }
+  match /users/{uid} {
+   allow read: if owner(uid);
+   allow create, update: if owner(uid) && request.resource.data.keys().hasOnly(['createdAt','updatedAt']);
+   allow delete: if false;
+   match /{bucket}/{item} {
+    allow get: if owner(uid) || (bucket == 'friends' && item == request.auth.uid) || (bucket == 'targets' && accepted(uid));
+    allow list: if owner(uid) || (bucket == 'targets' && accepted(uid));
+    allow create, update: if bucket == 'friends' ? validFriendWrite(uid,item) : owner(uid) && validItem(bucket);
+    allow delete: if owner(uid) && bucket in ['targets','events','installations','covers','blocks'];
+    function validFriendWrite(parent,peer) { let d=request.resource.data; return signed() && validItem('friends') && (((request.method == 'create' || request.method == 'update' && resource.data.state in ['closed','friend'] && d.version == resource.data.version + 1) && d.state == 'pending' && d.version is int && d.version > 0 && d.requester == request.auth.uid && d.uid == request.auth.uid && exists(/databases/$(database)/documents/publicProfiles/$(request.auth.uid)) && d.alias == get(/databases/$(database)/documents/publicProfiles/$(request.auth.uid)).data.alias && peer == request.auth.uid && parent != request.auth.uid && exists(/databases/$(database)/documents/publicProfiles/$(parent)) && get(/databases/$(database)/documents/publicProfiles/$(parent)).data.discoverable == true && !exists(/databases/$(database)/documents/users/$(parent)/blocks/$(request.auth.uid)) && !exists(/databases/$(database)/documents/users/$(request.auth.uid)/blocks/$(parent))) || ((request.method == 'create' || request.method == 'update' && resource.data.state == 'closed' && d.version == resource.data.version + 1) && owner(parent) && d.state == 'outgoing' && d.version is int && d.version > 0 && d.requester == request.auth.uid && exists(/databases/$(database)/documents/publicProfiles/$(peer)) && d.alias == get(/databases/$(database)/documents/publicProfiles/$(peer)).data.alias && peer != request.auth.uid) || (request.method == 'update' && owner(parent) && resource.data.state == 'pending' && resource.data.requester != request.auth.uid && d.state in ['friend','closed'] && d.version == resource.data.version + 1) || (request.method == 'update' && owner(parent) && resource.data.state in ['pending','outgoing','friend'] && d.state == 'closed' && d.version == resource.data.version + 1) || (request.method == 'update' && request.auth.uid == resource.data.requester && resource.data.state == 'pending' && d.state == 'closed' && d.version == resource.data.version + 1) || (request.method == 'create' && request.auth.uid == peer && d.state == 'friend' && d.version is int && d.version > 0 && exists(/databases/$(database)/documents/publicProfiles/$(request.auth.uid)) && d.alias == get(/databases/$(database)/documents/publicProfiles/$(request.auth.uid)).data.alias && existsAfter(/databases/$(database)/documents/users/$(request.auth.uid)/friends/$(parent)) && getAfter(/databases/$(database)/documents/users/$(request.auth.uid)/friends/$(parent)).data.state == d.state && getAfter(/databases/$(database)/documents/users/$(request.auth.uid)/friends/$(parent)).data.version == d.version) || (request.method == 'update' && request.auth.uid == peer && resource.data.state in ['outgoing','friend'] && d.state in ['friend','closed'] && d.version == resource.data.version + 1 && existsAfter(/databases/$(database)/documents/users/$(request.auth.uid)/friends/$(parent)) && getAfter(/databases/$(database)/documents/users/$(request.auth.uid)/friends/$(parent)).data.state == d.state && getAfter(/databases/$(database)/documents/users/$(request.auth.uid)/friends/$(parent)).data.version == d.version)); }
+    function validItem(bucket) {
+     let d=request.resource.data;
+     return bucket == 'targets' ? d.keys().hasOnly(['id','key','kind','label','priority','repos','createdAt','lastSync','error']) && d.id is string && d.key is string && d.kind in ['repo','org'] && d.label is string && d.label.size() <= 80 && d.priority is number && d.repos is list && d.repos.size() <= 100
+      : bucket == 'events' ? d.keys().hasOnly(['id','repo','kind','title','body','url','date','sourceUpdated','revision','status','assets','firstSeen','detectedAt','read','releaseTag','downloads','priority','label']) && d.id is string && d.id.size() <= 200 && d.repo is string && d.repo.size() <= 150 && d.kind in ['release','commit','pr'] && d.title is string && d.title.size() <= 300 && d.body is string && d.body.size() <= 7000 && (!('downloads' in d) || d.downloads is list && d.downloads.size() <= 100) && d.url is string && d.url.matches('https://github\\.com/.*') && d.read is bool
+      : bucket == 'installations' ? d.keys().hasOnly(['repo','releaseId','tag','title','publishedAt','prerelease','markedAt']) && d.repo is string && d.tag is string && d.tag.size() <= 120 && d.title is string
+      : bucket == 'covers' ? d.keys().hasOnly(['repo','updatedAt','url','dataUrl','dataUrl2x']) && d.repo is string && ((!('url' in d) || d.url is string && d.url.size() <= 2048 && d.url.matches('https://.*')) && (!('dataUrl' in d) || d.dataUrl is string && d.dataUrl.matches('data:image/jpeg;base64,.*')) && (!('dataUrl2x' in d) || 'dataUrl' in d && d.dataUrl2x is string && d.dataUrl2x.matches('data:image/jpeg;base64,.*')) && ((!('dataUrl' in d) && !('dataUrl2x' in d)) || (d.dataUrl.size() + (('dataUrl2x' in d) ? d.dataUrl2x.size() : 0) <= 180000)))
+      : bucket == 'friends' ? d.keys().hasOnly(['uid','alias','state','requester','version','createdAt','updatedAt','discoverable']) && d.uid is string && d.state in ['pending','outgoing','friend','closed','blocked'] && d.requester is string && d.version is int && d.version >= 0 && (d.alias is string && d.alias.size() <= 24)
+      : bucket == 'blocks' ? d.keys().hasOnly(['uid','alias','createdAt']) && d.uid is string && (!('alias' in d) || d.alias is string && d.alias.size() <= 24)
+      : false;
+    }
+   }
+  }
+  match /publicProfiles/{uid} {
+   allow read: if signed() && (resource.data.discoverable == true || request.auth.uid == uid);
+   allow create: if owner(uid) && validProfile();
+   allow update: if owner(uid) && validProfile() && request.resource.data.alias == resource.data.alias;
+   allow delete: if owner(uid);
+   function validProfile() { let d=request.resource.data; return d.keys().hasOnly(['uid','alias','discoverable','updatedAt']) && d.uid == uid && d.alias is string && d.alias.matches('^[a-z0-9][a-z0-9_]{2,23}$') && d.discoverable is bool; }
+  }
+ }
+}

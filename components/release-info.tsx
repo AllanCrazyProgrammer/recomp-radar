@@ -4,7 +4,6 @@ import {explain,type RadarEvent} from '@/lib/domain';
 import {summarizeEvent} from '@/lib/event-summary';
 import {releaseTag} from '@/lib/library';
 import {guideReadme,projectGuide,type GuidePlatform} from '@/lib/project-guides';
-import {RepositoryGuide} from './repository-guide';
 import {staggerStyle} from './animated-view';
 
 const tabs=[{id:'version',label:'Versión'},{id:'install',label:'Instalación'},{id:'update',label:'Actualizar'}] as const;
@@ -47,7 +46,7 @@ export function ReleaseInfo({event}:{event:RadarEvent}){
      <div className="guide-data"><strong>{tab==='install'?'Dónde quedan tus datos':'Tus partidas y ajustes'}</strong><p>{method.data}</p></div>
      {tab==='update'&&method.note&&<p>{method.note}</p>}
      {tab==='update'&&summary.points.some(p=>p.section==='Antes de actualizar')&&<><h5>Para esta release</h5><ul>{summary.points.filter(p=>p.section==='Antes de actualizar').map((point,index)=><li key={index}>{point.text}</li>)}</ul></>}
-    </>:<RepositoryGuide event={event} tab={tab}/>}
+    </>:<p className="guide-scope">La guía automática de este repositorio ya no se genera en el alojamiento estático. Consulta las notas de la release y el README del proyecto antes de instalar o actualizar.</p>}
     <div className="guide-sources">{readme&&<a href={readme} target="_blank" rel="noreferrer">README de {tag??'este proyecto'} ↗</a>}{guide&&reviewedReadme&&!reviewed&&<a href={reviewedReadme} target="_blank" rel="noreferrer">Fuente de esta guía ↗</a>}<a href={event.url} target="_blank" rel="noreferrer">Notas de esta release ↗</a></div>
    </div>}
   </div>

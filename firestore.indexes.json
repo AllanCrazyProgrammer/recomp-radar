@@ -1,0 +1,1 @@
+{"indexes":[{"collectionGroup":"publicProfiles","queryScope":"COLLECTION","fields":[{"fieldPath":"alias","order":"ASCENDING"},{"fieldPath":"discoverable","order":"ASCENDING"}]},{"collectionGroup":"friends","queryScope":"COLLECTION","fields":[{"fieldPath":"state","order":"ASCENDING"}]}],"fieldOverrides":[]}

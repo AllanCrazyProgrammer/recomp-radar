@@ -1,29 +1,23 @@
-import { defineConfig, globalIgnores } from "eslint/config";
-import nextVitals from "eslint-config-next/core-web-vitals";
-import nextTs from "eslint-config-next/typescript";
+import {defineConfig,globalIgnores} from 'eslint/config';
+import js from '@eslint/js';
+import tsParser from '@typescript-eslint/parser';
+import tsPlugin from '@typescript-eslint/eslint-plugin';
+import react from 'eslint-plugin-react';
+import reactHooks from 'eslint-plugin-react-hooks';
+import globals from 'globals';
 
-const eslintConfig = defineConfig([
-  ...nextVitals,
-  ...nextTs,
-  // Override default ignores of eslint-config-next.
-  globalIgnores([
-    // Default ignores of eslint-config-next:
-    ".sites-runtime/**",
-    ".next/**",
-    "out/**",
-    "build/**",
-    "next-env.d.ts",
-  ]),
+export default defineConfig([
+  {...js.configs.recommended,languageOptions:{...js.configs.recommended.languageOptions,globals:{...globals.browser,...globals.node}}},
   {
-    files: ["components/ui/**/*.{ts,tsx}", "hooks/use-mobile.ts"],
-    rules: {
-      // These files are vendored verbatim from shadcn@4.17.0. Keep the
-      // registry source intact while applying the stricter rules to Site code.
-      "@typescript-eslint/no-unused-vars": "off",
-      "react-hooks/purity": "off",
-      "react-hooks/set-state-in-effect": "off",
-    },
+    files:['**/*.{ts,tsx}'],
+    languageOptions:{parser:tsParser,parserOptions:{ecmaVersion:'latest',sourceType:'module',ecmaFeatures:{jsx:true}}},
+    plugins:{'@typescript-eslint':tsPlugin,react,'react-hooks':reactHooks},
+    settings:{react:{version:'detect'}},
+    rules:{'no-undef':'off',...tsPlugin.configs.recommended.rules,...react.configs.recommended.rules,...reactHooks.configs.recommended.rules,'no-unused-vars':'off','@typescript-eslint/no-unused-vars':['warn',{argsIgnorePattern:'^_',varsIgnorePattern:'^_'}],'react/prop-types':'off','react/react-in-jsx-scope':'off','no-control-regex':'off','no-empty':'off','no-useless-escape':'off'},
   },
+  {
+    files:['components/ui/**/*.{ts,tsx}','hooks/use-mobile.ts'],
+    rules:{'@typescript-eslint/no-unused-vars':'off','react-hooks/purity':'off','react-hooks/set-state-in-effect':'off'},
+  },
+  globalIgnores(['.next/**','out/**','dist/**','build/**','node_modules/**','tests/fixtures/**','next-env.d.ts']),
 ]);
-
-export default eslintConfig;

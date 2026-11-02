@@ -1,0 +1,9 @@
+import React from 'react';
+import {createRoot} from 'react-dom/client';
+import Radar from '../components/radar';
+import '../app/globals.css';
+import '../app/retro.css';
+import '../app/comfort.css';
+import '../app/friends.css';
+import '../app/animations.css';
+createRoot(document.getElementById('root')!).render(<React.StrictMode><Radar/></React.StrictMode>);

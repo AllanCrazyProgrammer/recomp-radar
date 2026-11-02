@@ -1,11 +1,11 @@
 import {MAX_REPOS,MAX_TARGETS,parseTarget} from './domain.ts';
-export class SocialError extends Error { status:number; constructor(message:string,status=400){super(message);this.status=status;} }
+import {SocialError,normalizeAlias} from './alias.ts';
+export {SocialError,normalizeAlias} from './alias.ts';
 export type PublicProfile={id:string;alias:string};
 export type FriendRadar={profile:PublicProfile;games:{repo:string;title:string;url:string}[]};
 type Profile={user_id:string;public_id:string;alias:string;discoverable:number};
 type Relation={id:string;user_low:string;user_high:string;requester:string;state:string;version:number};
 const MAX_CONTACTS=100;
-export function normalizeAlias(value:unknown){if(typeof value!=='string')throw new SocialError('Elige un alias de 3 a 24 caracteres.');const alias=value.trim().toLowerCase();if(!/^[a-z0-9][a-z0-9_]{2,23}$/.test(alias))throw new SocialError('Usa 3–24 letras, números o guion bajo; comienza con letra o número.');return alias;}
 export const publicProfile=(p:Profile):PublicProfile=>({id:p.public_id,alias:p.alias});
 const profile=(db:D1Database,user:string)=>db.prepare('SELECT user_id,public_id,alias,discoverable FROM social_profiles WHERE user_id=?').bind(user).first<Profile>();
 const unblocked='NOT EXISTS(SELECT 1 FROM social_blocks WHERE (blocker=? AND blocked=?) OR (blocker=? AND blocked=?))';
