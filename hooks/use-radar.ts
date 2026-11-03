@@ -1,89 +1,47 @@
 'use client';
 import {useCallback,useEffect,useRef,useState} from 'react';
-import type {RadarEvent,Target} from '@/lib/domain';
-import type {Installation} from '@/lib/library';
-import type {RefreshResult} from '@/lib/sync';
+import {onAuthStateChanged,signInWithPopup,signOut} from 'firebase/auth';
+import {doc,setDoc} from 'firebase/firestore';
+import {auth,db,githubProvider,googleProvider,firebaseConfigured} from '@/lib/firebase';
+import {MAX_TARGETS,mergeEvents,parseTarget,type RadarEvent,type Target} from '@/lib/domain';
+import {readLibrary,saveTarget,removeTarget,setTargetPriority,saveInstallation,deleteInstallation,saveCover,importLibrary,importMapping} from '@/lib/firestore-data';
+import {installationFromRelease,manualInstallation} from '@/lib/library';
 import {createRefreshQueue,type RefreshJob} from '@/lib/refresh-queue';
-
-export type Cover={repo:string;updatedAt:string};
+import {releaseDownloads} from '@/lib/release-assets';
+export type Cover={repo:string;updatedAt:string;url?:string;dataUrl?:string;dataUrl2x?:string};
 export type RepoCheck={repo:string;releasesAt:string|null;lastSync:string|null;error:string|null};
-type State={checks:RepoCheck[];targets:Target[];events:RadarEvent[];releases:RadarEvent[];installations:Installation[];covers:Cover[];rate:{remaining:number|null;limit:number|null;reset:number|null;blockedUntil:number|null};lastSync:{at:string;errors:string[];repos:string[]}|null;background:boolean;limits:{maxRepos:number}};
-const initial:State={checks:[],targets:[],events:[],releases:[],installations:[],covers:[],rate:{remaining:null,limit:null,reset:null,blockedUntil:null},lastSync:null,background:false,limits:{maxRepos:6}};
-type ApiResult={error?:string;state:State;result:Partial<RefreshResult>&{targetId?:string}};
+type State={checks:RepoCheck[];targets:Target[];events:RadarEvent[];releases:RadarEvent[];installations:import('@/lib/library').Installation[];covers:Cover[];rate:{remaining:number|null;limit:number|null;reset:number|null;blockedUntil:number|null};lastSync:{at:string;errors:string[];repos:string[]}|null;background:boolean;limits:{maxRepos:number}};
+const blank:State={checks:[],targets:[],events:[],releases:[],installations:[],covers:[],rate:{remaining:null,limit:60,reset:null,blockedUntil:null},lastSync:null,background:false,limits:{maxRepos:100}};
 export type Act=(body:Record<string,unknown>,silent?:boolean)=>Promise<boolean>;
-
-export function useRadar() {
-  const [state,setState]=useState<State>(initial),[loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[syncing,setSyncing]=useState(false),[waiting,setWaiting]=useState(false),[rateRetryAt,setRateRetryAt]=useState<number|null>(null),[error,setError]=useState(''),[notice,setNotice]=useState(''),[auth,setAuth]=useState(false),[refreshTargetId,setRefreshTargetId]=useState<string|null>(null);
-  const sequence=useRef(0),queue=useRef<ReturnType<typeof createRefreshQueue>|null>(null);
-  const loadSnapshot=useCallback(async(signal?:AbortSignal)=>{
-    const request=++sequence.current;
-    const response=await fetch('/api/radar',{signal});
-    const data=await response.json() as State&{error?:string};
-    if(response.status===401)setAuth(true);
-    if(!response.ok)throw new Error(data.error??'No se pudo abrir la biblioteca.');
-    if(request===sequence.current)setState(data);
-    return data;
-  },[]);
-  const post=useCallback(async(body:Record<string,unknown>,signal?:AbortSignal)=>{
-    const request=++sequence.current;
-    const response=await fetch('/api/radar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),signal});
-    const data=await response.json() as ApiResult;
-    if(response.status===401)setAuth(true);
-    if(!response.ok)throw new Error(data.error??'No se pudo completar la acción.');
-    if(request===sequence.current)setState(data.state);
-    else await loadSnapshot(signal);
-    return data;
-  },[loadSnapshot]);
-  const refresh=useCallback((job:RefreshJob={})=>queue.current?.request(job),[]);
-  useEffect(()=>{
-    const controller=new AbortController();
-    const worker=createRefreshQueue({
-      async run(job,signal){
-        setRefreshTargetId(job.targetId??null);
-        const data=await post({action:'refresh',fresh:job.fresh===true,...(job.targetId?{targetId:job.targetId}:{})},signal);
-        const result=data.result as RefreshResult;
-        if(result.rateLimited&&result.retryAt){setRateRetryAt(result.retryAt);setError(result.errors.join(' '));setNotice('');}
-        else if(!result.busy){
-          setRateRetryAt(null);
-          if(!job.silent)setNotice(`${result.added} registros añadidos · ${result.changed} editados.`);
-          setError(result.errors.join(' '));
-        }
-        return result;
-      },
-      status(status){setSyncing(status!=='idle');setWaiting(status==='waiting');if(status==='idle'){setRateRetryAt(null);setRefreshTargetId(null);}},
-      error(value){setError(value instanceof Error?value.message:'No se pudo consultar GitHub.');},
-    });
-    queue.current=worker;
-    async function open(){
-      try{const data=await loadSnapshot(controller.signal);if(!controller.signal.aborted&&data.targets.length)worker.request({silent:true});}
-      catch(value){if(!controller.signal.aborted)setError(value instanceof Error?value.message:'No hay conexión.');}
-      finally{if(!controller.signal.aborted)setLoading(false);}
-    }
-    void open();
-    const visible=()=>{if(document.visibilityState==='visible')worker.request({silent:true});};
-    const timer=setInterval(visible,30*60*1000);
-    document.addEventListener('visibilitychange',visible);
-    return()=>{controller.abort();worker.dispose();queue.current=null;clearInterval(timer);document.removeEventListener('visibilitychange',visible);};
-  },[loadSnapshot,post]);
-  const act=useCallback<Act>(async(body,silent=false)=>{
-    if(body.action==='refresh'){
-      setError('');
-      refresh({fresh:body.fresh===true,targetId:typeof body.targetId==='string'?body.targetId:undefined,silent});
-      return true;
-    }
-    setBusy(true);setError('');
-    try{
-      const data=await post(body);
-      if(body.action==='add'&&data.result.targetId){
-        setNotice('Fuente añadida. Consultando sus novedades…');
-        refresh({targetId:data.result.targetId});
-      }else if(body.action==='setInstalled')setNotice('Versión instalada marcada por ti.');
-      else if(body.action==='clearInstalled')setNotice('Marca de versión instalada quitada.');
-      return true;
-    }catch(value){setError(value instanceof Error?value.message:'Error de conexión.');return false;}
-    finally{setBusy(false);}
-  },[post,refresh]);
-  // Cover controls only need completion, not the snapshot value.
-  const reload=useCallback(async()=>{await loadSnapshot();},[loadSnapshot]);
-  return {state,loading,busy,syncing,waiting,rateRetryAt,refreshTargetId,error,setError,notice,setNotice,auth,act,loadSnapshot:reload};
+const cacheKey=(repo:string)=>'recomp-radar-github:'+repo.toLowerCase();
+async function github(repo:string,force=false){
+ const key=cacheKey(repo),now=Date.now(),saved=(()=>{try{return JSON.parse(localStorage.getItem(key)??'null')}catch{return null}})();
+ if(!force&&saved?.checkedAt>now-30*60_000)return {items:saved.items as unknown[],remaining:saved.remaining,reset:saved.reset};
+ const budgetKey='recomp-radar-github-budget',attempts=(()=>{try{return (JSON.parse(localStorage.getItem(budgetKey)??'[]') as number[]).filter(t=>t>now-3_600_000)}catch{return []}})();
+ if(attempts.length>=50)throw Object.assign(new Error('Límite local de consultas: quedan menos de 50 comprobaciones disponibles por hora.'),{retryAt:attempts[0]+3_600_000});
+ attempts.push(now);localStorage.setItem(budgetKey,JSON.stringify(attempts));
+ const headers:Record<string,string>={'Accept':'application/vnd.github+json'};if(saved?.etag)headers['If-None-Match']=saved.etag;
+ const response=await fetch(`https://api.github.com/repos/${repo}/releases?per_page=20`,{headers});
+ const remainingHeader=response.headers.get('x-ratelimit-remaining'),resetHeader=response.headers.get('x-ratelimit-reset'),remaining=remainingHeader===null?null:Number(remainingHeader),reset=resetHeader===null?null:Number(resetHeader);
+ if(response.status===304){localStorage.setItem(key,JSON.stringify({...saved,checkedAt:now,remaining,reset}));return {items:saved.items as unknown[],remaining,reset};}
+ if(response.status===403||response.status===429)throw Object.assign(new Error('Límite público de GitHub alcanzado.'),{retryAt:reset&&reset>0?reset*1000:Date.now()+3_600_000,remaining,reset});
+ if(!response.ok)throw new Error(`GitHub respondió ${response.status} para ${repo}.`);
+ const items=await response.json() as unknown[];localStorage.setItem(key,JSON.stringify({etag:response.headers.get('etag'),items,checkedAt:now,remaining,reset}));return {items,remaining,reset};
+}
+function event(repo:string,x:Record<string,unknown>):RadarEvent {const tag=String(x.tag_name??''),published=String(x.published_at??x.created_at??'');return {id:String(x.id),repo,kind:'release',title:String(x.name||tag||'Release'),body:String(x.body??'').slice(0,6000),url:String(x.html_url),date:published,sourceUpdated:String(x.updated_at??published),revision:String(x.updated_at??published),status:x.prerelease?'prerelease':'published',assets:Array.isArray(x.assets)?x.assets.length:0,firstSeen:new Date().toISOString(),detectedAt:new Date().toISOString(),read:false,releaseTag:tag,downloads:releaseDownloads(repo,tag,x.assets)};}
+export function useRadar(){const [state,setState]=useState<State>(blank),[user,setUser]=useState<typeof auth.currentUser>(null),[loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[syncing,setSyncing]=useState(false),[waiting]=useState(false),[rateRetryAt,setRateRetryAt]=useState<number|null>(null),[error,setError]=useState(''),[notice,setNotice]=useState(''),[authRequired,setAuthRequired]=useState(true),[refreshTargetId,setRefreshTargetId]=useState<string|null>(null);
+ const loadSnapshot=useCallback(async()=>{if(!user)return blank;const data=await readLibrary(user.uid);const next={...blank,...data};setState(next);return next;},[user]);
+ const refresh=useCallback(async(job:RefreshJob={})=>{if(!user)return;setSyncing(true);setRefreshTargetId(job.targetId??null);try{const library=await readLibrary(user.uid);setState({...blank,...library});const targets=job.targetId?library.targets.filter(t=>t.id===job.targetId):library.targets;let remaining:number|null=null,reset:number|null=null;repoChecks: for(const target of targets){for(const repo of target.repos){try{if(remaining!==null)await new Promise(resolve=>setTimeout(resolve,1100));const result=await github(repo,job.fresh===true);remaining=result.remaining;reset=result.reset;const items=result.items as Record<string,unknown>[],batch=items.map(x=>event(repo.toLowerCase(),x)),prior=library.releases.filter(e=>e.repo.toLowerCase()===repo.toLowerCase()),merged=mergeEvents(prior,batch,new Date().toISOString());for(const e of merged)await setDoc(doc(db,'users',user.uid,'events',encodeURIComponent(e.id)),e,{merge:true});}catch(e){const err=e as Error&{retryAt?:number;remaining?:number;reset?:number};if(err.retryAt){setRateRetryAt(err.retryAt);remaining=err.remaining??null;reset=err.reset??null;break repoChecks;}setError(err.message);}}}setState({...blank,...await readLibrary(user.uid)});setState(s=>({...s,rate:{remaining,limit:60,reset,blockedUntil:null},lastSync:{at:new Date().toISOString(),errors:[],repos:[]}}));}catch(e){setError(e instanceof Error?e.message:'Falló la consulta de GitHub.');}finally{setSyncing(false);setRefreshTargetId(null);}},[user]);
+ const refreshRef=useRef(refresh),retryRef=useRef<number|null>(rateRetryAt);useEffect(()=>{refreshRef.current=refresh;retryRef.current=rateRetryAt;},[refresh,rateRetryAt]);
+ useEffect(()=>onAuthStateChanged(auth,u=>{setUser(u);setAuthRequired(!u);if(!u){setState(blank);setLoading(false);}else void readLibrary(u.uid).then(data=>{setState({...blank,...data});setLoading(false);}).catch(e=>{setError(e.message);setLoading(false);});}),[]);
+ useEffect(()=>{if(!user)return;const q=createRefreshQueue({run:async job=>{await refreshRef.current?.(job);return {busy:false,rateLimited:!!retryRef.current,retryAt:retryRef.current??undefined,errors:[],repos:[],added:0,changed:0};},status:s=>setSyncing(s!=='idle'),error:e=>setError(e instanceof Error?e.message:'No se pudo actualizar.')});q.request({silent:true,fresh:true});const visibility=()=>{if(document.visibilityState==='visible')q.request({silent:true});};document.addEventListener('visibilitychange',visibility);return()=>{q.dispose();document.removeEventListener('visibilitychange',visibility);};},[user]);
+ const act=useCallback<Act>(async(body)=>{if(!user)return false;setBusy(true);setError('');try{if(body.action==='refresh'){void refresh({targetId:typeof body.targetId==='string'?body.targetId:undefined});return true;}if(body.action==='add'){if(state.targets.length>=MAX_TARGETS)throw new Error('Has alcanzado el máximo de fuentes.');const parsed=parseTarget(String(body.input??''));const id=crypto.randomUUID();let repos=[parsed.key];if(parsed.kind==='org'){const res=await fetch(`https://api.github.com/orgs/${parsed.key}/repos?per_page=100`);if(!res.ok)throw new Error('No se pudo consultar la organización.');repos=(await res.json() as Record<string,unknown>[]).filter(r=>!r.fork&&!r.archived).slice(0,6).map(r=>`${parsed.key}/${String(r.name)}`);}const target:Target={id,key:parsed.key,kind:parsed.kind,label:String(body.label||parsed.key),priority:0,repos,createdAt:new Date().toISOString(),lastSync:null,error:null};await saveTarget(user.uid,target);setState({...blank,...await readLibrary(user.uid)});void refresh({targetId:id});}
+ else if(body.action==='setInstalled'){const repo=String(body.repo),releaseId=String(body.releaseId??''),ev=state.releases.find(e=>e.id===releaseId&&e.repo===repo);await saveInstallation(user.uid,ev?installationFromRelease(ev,new Date().toISOString()):manualInstallation(repo,String(body.tag??''),new Date().toISOString()));await loadSnapshot();}
+ else if(body.action==='priority'){const target=state.targets.find(t=>t.id===String(body.id));if(target)await setTargetPriority(user.uid,target.id,body.priority?1:0);await loadSnapshot();}
+ else if(body.action==='remove'){await removeTarget(user.uid,String(body.id));await loadSnapshot();}
+ else if(body.action==='clearInstalled'){await deleteInstallation(user.uid,String(body.repo));await loadSnapshot();}
+ else if(body.action==='markRead'){const e=state.events.find(e=>e.id===String(body.id));if(e)await setDoc(doc(db,'users',user.uid,'events',encodeURIComponent(e.id)),{...e,read:true});await loadSnapshot();}
+ else throw new Error('Acción no disponible en el cliente.');return true;}catch(e){setError(e instanceof Error?e.message:'No se pudo completar.');return false;}finally{setBusy(false);}},[user,state,refresh,loadSnapshot]);
+ const reload=useCallback(async()=>{await loadSnapshot();},[loadSnapshot]);
+ return {state,loading,busy,syncing,waiting,rateRetryAt,refreshTargetId,error,setError,notice,setNotice,auth:authRequired,act,loadSnapshot:reload,user,firebaseConfigured,login:async(provider:'github'|'google')=>signInWithPopup(auth,provider==='github'?githubProvider:googleProvider),logout:()=>signOut(auth),importJSON:async(raw:unknown)=>{if(!user)throw new Error('Inicia sesión.');await importLibrary(user.uid,importMapping(raw));await reload();},saveCover:async(repo:string,value:{url?:string;dataUrl?:string;dataUrl2x?:string})=>{if(!user)throw new Error('Inicia sesión.');await saveCover(user.uid,repo,value);await reload();}};
 }

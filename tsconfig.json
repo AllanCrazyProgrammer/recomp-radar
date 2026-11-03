@@ -17,11 +17,6 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
     "paths": {
       "@/*": [
         "./*"
@@ -29,12 +24,20 @@
     },
     "types": [
       "node",
-      "@cloudflare/workers-types"
+      "vite/client"
     ],
     "allowImportingTsExtensions": true
   },
   "include": [
-    "next-env.d.ts",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "components/**/*.ts",
+    "components/**/*.tsx",
+    "hooks/**/*.ts",
+    "hooks/**/*.tsx",
+    "lib/**/*.ts",
+    "types/**/*.d.ts",
+    "tests/**/*.ts",
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
@@ -45,6 +48,13 @@
   "exclude": [
     "node_modules",
     ".sites-runtime",
-    "examples"
+    "examples",
+    "app/api",
+    "build",
+    "db",
+    "drizzle",
+    "scripts",
+    "next.config.ts",
+    "drizzle.config.ts"
   ]
 }

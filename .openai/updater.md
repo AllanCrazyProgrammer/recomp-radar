@@ -1,7 +1,0 @@
-# Recomp Radar: actualizaciones del servidor
-
-Este Site es propietario-privado. No cambiar su audiencia. El endpoint POST `/api/background` consulta solo GitHub público, reutiliza caché y deduplica en D1; GET en la misma ruta devuelve la última sincronización persistida. No hay email, push ni avisos de dot.
-
-Para una tarea vinculada al Site, obtener el Site por su ID proporcionado en el contexto de la tarea y usar su URL publicada actual. Obtener acceso de servicio soportado mediante Sites `get_site`, sin crear ni rotar credenciales. Si incluye `siwc_bypass_bearer_token`, enviarlo solo a ese Site como `OAI-Sites-Authorization: Bearer <valor>`, manteniéndolo en memoria; no guardarlo en archivos, prompts ni salida. Hacer POST a `/api/background`, luego GET y comprobar que `background-last-run.at` coincide con el resultado y que no hay errores. No republicar. Si no hay credencial soportada, hay pausa de cuota o error, informar la limitación; no eludir acceso ni fabricar noticias. Una tarea programada no demuestra una ejecución exitosa.
-
-Cada ciclo consulta como máximo 6 repositorios; captura 20 releases, 30 commits y 30 PR por repo. Los datos de seguimiento pertenecen a los visitantes autenticados de la cuenta propietaria; el writer compartido solo es válido detrás del acceso propietario-privado de Sites. El usuario debe añadir sus fuentes antes de que una consulta tenga trabajo. Mantener errores de cobertura parcial.

@@ -1,10 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {DatabaseSync,type SQLInputValue} from 'node:sqlite';
-import {readFileSync,readdirSync} from 'node:fs';
+import {readFileSync} from 'node:fs';
 import {socialMutate,socialSnapshot,searchProfiles,socialLimit,normalizeAlias,friendRadar} from '../lib/friends.ts';
 function fixture(){
- const sql=new DatabaseSync(':memory:');for(const n of readdirSync(new URL('../drizzle',import.meta.url)).filter(n=>n.endsWith('.sql')).sort())sql.exec(readFileSync(new URL('../drizzle/'+n,import.meta.url),'utf8'));
+ const sql=new DatabaseSync(':memory:');sql.exec(readFileSync(new URL('./fixtures/legacy-schema.sql',import.meta.url),'utf8'));
  const prepare=(query:string)=>{let args:SQLInputValue[]=[];const execute=()=>sql.prepare(query).run(...args);return {bind(...values:typeof args){args=values;return this;},async first(){return sql.prepare(query).get(...args)??null;},async all(){return {results:sql.prepare(query).all(...args)};},async run(){return {meta:execute()};},execute};};
  const db={prepare,async batch(statements:ReturnType<typeof prepare>[]){sql.exec('BEGIN');try{const r=statements.map(s=>s.execute());sql.exec('COMMIT');return r;}catch(e){sql.exec('ROLLBACK');throw e;}}} as unknown as D1Database;
  const act=(user:string,body:Record<string,unknown>)=>socialMutate(db,user,body),state=(user:string)=>socialSnapshot(db,user);
