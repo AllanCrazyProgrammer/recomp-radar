@@ -16,3 +16,13 @@ test('Firestore isolates user data and allows an accepted friend to read shared 
   await assertFails(getDoc(doc(b,'users/alice/installations/game')));await assertFails(getDoc(doc(c,'users/alice/targets/game')));
  }finally{await env.cleanup();}
 });
+
+test('legacy import of an event with an oversize title succeeds after mapping',async()=>{
+ const {importMapping}=await import('../lib/import-mapping.ts');const {buildImportEntries}=await import('../lib/import-entries.ts');
+ const env=await initializeTestEnvironment({projectId:'recomp-radar-rules-test',firestore:{rules:await (await import('node:fs/promises')).readFile('firestore.rules','utf8')}});
+ try{const a=env.authenticatedContext('alice').firestore();
+  const raw={targets:[{key:'o/r',kind:'repo',repos:['o/r']}],events:[{id:'o/r:commit:1',repo:'o/r',kind:'commit',title:'x'.repeat(421),body:'b',url:'https://github.com/o/r/commit/1',read:false}],releases:[],installations:[],covers:[]};
+  await assertFails(setDoc(doc(a,'users/alice/events/raw'),{...raw.events[0]}));
+  const batch=writeBatch(a);for(const e of buildImportEntries(importMapping(raw)))batch.set(doc(a,'users',`alice`,e.collection,e.id),e.data,{merge:true});await assertSucceeds(batch.commit());
+ }finally{await env.cleanup();}
+});

@@ -14,3 +14,8 @@ test('legacy targets missing optional fields get rule-valid defaults',()=>{
  const [t]=importMapping({targets:[{key:'Zelda64Recomp/Zelda64Recomp',kind:'repo',repos:['Zelda64Recomp/Zelda64Recomp'],extra:'x'}]},'2026-01-01T00:00:00.000Z').targets;
  assert.deepEqual(t,{id:'Zelda64Recomp/Zelda64Recomp',key:'Zelda64Recomp/Zelda64Recomp',kind:'repo',label:'Zelda64Recomp',priority:0,repos:['Zelda64Recomp/Zelda64Recomp'],createdAt:'2026-01-01T00:00:00.000Z',lastSync:null,error:null});
 });
+
+test('legacy events are clamped to Firestore rule limits (long commit titles)',()=>{
+ const [e]=importMapping({events:[{id:'o/r:commit:1',repo:'o/r',kind:'commit',title:'x'.repeat(421),body:'b',url:'https://github.com/o/r/commit/1',read:'yes',junk:1}]}).events as unknown as Record<string,unknown>[];
+ assert.equal((e.title as string).length,300);assert.equal(e.read,false);assert.equal('junk' in e,false);
+});
