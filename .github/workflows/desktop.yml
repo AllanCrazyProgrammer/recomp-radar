@@ -1,6 +1,6 @@
 # Construye los instaladores de escritorio (Mac, Windows y Linux).
 # - Al subir una etiqueta vX.Y.Z: crea un borrador de GitHub Release con los instaladores.
-# - Al ejecutarlo a mano: deja los instaladores como artefactos del workflow.
+# - Al ejecutarlo a mano o en un PR que toca la app de escritorio: deja los instaladores como artefactos.
 # La configuración web de Firebase se lee de las variables del repositorio (Settings → Variables → Actions).
 name: Escritorio
 
@@ -8,6 +8,13 @@ on:
   push:
     tags: ['v*']
   workflow_dispatch:
+  pull_request:
+    paths:
+      - 'electron/**'
+      - 'build/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/desktop.yml'
 
 permissions:
   contents: write
