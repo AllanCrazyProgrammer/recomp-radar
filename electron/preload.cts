@@ -17,6 +17,10 @@ contextBridge.exposeInMainWorld('radarDesktop',{
  uninstall:(repo:string)=>call('radar:uninstall',repo),
  reveal:(repo:string)=>call('radar:reveal',repo),
  chooseExecutable:(repo:string)=>call('radar:choose-executable',repo),
+ sgdbStatus:()=>call('radar:sgdb-status'),
+ sgdbSetKey:(key:string)=>call('radar:sgdb-set-key',key),
+ sgdbClearKey:()=>call('radar:sgdb-clear-key'),
+ sgdbArt:(repo:string,terms:string[],options?:unknown)=>call('radar:sgdb-art',repo,terms,options),
  startLogin:(provider:string)=>call('radar:start-login',provider),
  onAuthCredential:(listener:(credential:unknown)=>void)=>{
   const handler=(_event:IpcRendererEvent,credential:unknown)=>listener(credential);

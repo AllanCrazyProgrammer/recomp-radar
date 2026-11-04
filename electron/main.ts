@@ -8,6 +8,7 @@ import {readFile,stat} from 'node:fs/promises';
 import {extname,join,normalize,resolve,sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createInstaller} from './installer.ts';
+import {createSteamGridDb} from './steamgriddb.ts';
 import {isInside,validInstallRequest,validRepo} from '../lib/desktop-install.ts';
 import {AUTH_CALLBACK_PATH,LOGIN_TTL_MS,loginUrl,parseCallback,validProvider,type DesktopProvider} from '../lib/desktop-auth.ts';
 
@@ -18,6 +19,7 @@ const devUrl=process.env.RADAR_DEV_URL;
 const PORT=Number(process.env.RADAR_PORT)||47821;
 const appOrigin=devUrl?new URL(devUrl).origin:`http://localhost:${PORT}`;
 const installer=createInstaller(app.getPath('userData'));
+const sgdb=createSteamGridDb(app.getPath('userData'));
 let server:Server|null=null,win:BrowserWindow|null=null;
 
 // Google y GitHub bloquean el inicio de sesión desde navegadores embebidos que se identifican como Electron.
@@ -86,6 +88,16 @@ const repoArg=(value:unknown)=>{if(typeof value!=='string'||!validRepo(value))th
 
 handle('radar:platform',()=>({os:installer.os,arch:process.arch==='arm64'?'ARM64':process.arch==='ia32'?'x86':'x64'}));
 handle('radar:list',()=>installer.list());
+handle('radar:sgdb-status',()=>sgdb.status());
+handle('radar:sgdb-set-key',k=>{if(typeof k!=='string'||k.length>100)throw new Error('Clave inválida.');return sgdb.setKey(k);});
+handle('radar:sgdb-clear-key',()=>sgdb.clearKey());
+handle('radar:sgdb-art',(repo,terms,options)=>{
+ const r=repoArg(repo);
+ const list=Array.isArray(terms)?terms.filter((t):t is string=>typeof t==='string'&&t.trim().length>=2&&t.length<=80).slice(0,4):[];
+ const o=(options&&typeof options==='object'?options:{}) as {force?:unknown;override?:unknown};
+ const override=o.override===undefined?undefined:typeof o.override==='string'&&o.override.trim().length>=2&&o.override.length<=80?o.override.trim():null;
+ return sgdb.art(r,list,{force:o.force===true,override});
+});
 handle('radar:start-login',async provider=>{
  if(!validProvider(provider))throw new Error('Proveedor no compatible.');
  pendingLogin={nonce:randomUUID(),provider,expires:Date.now()+LOGIN_TTL_MS};

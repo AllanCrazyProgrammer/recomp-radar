@@ -1,6 +1,7 @@
 // Puente expuesto por electron/preload.cts. Solo existe en la versión de escritorio.
 import type {DesktopOS,InstallProgress,InstallRequest,InstalledGame} from '../lib/desktop-install';
 import type {DesktopCredential,DesktopProvider} from '../lib/desktop-auth';
+import type {SgdbEntry} from '../lib/steamgriddb';
 
 export type RadarDesktop={
   platform():Promise<{os:DesktopOS;arch:'x64'|'ARM64'|'x86'}>;
@@ -11,6 +12,10 @@ export type RadarDesktop={
   reveal(repo:string):Promise<boolean>;
   chooseExecutable(repo:string):Promise<InstalledGame|null>;
   onProgress(listener:(progress:InstallProgress)=>void):()=>void;
+  sgdbStatus():Promise<{configured:boolean}>;
+  sgdbSetKey(key:string):Promise<boolean>;
+  sgdbClearKey():Promise<boolean>;
+  sgdbArt(repo:string,terms:string[],options?:{force?:boolean;override?:string|null}):Promise<SgdbEntry>;
   startLogin(provider:DesktopProvider):Promise<boolean>;
   onAuthCredential(listener:(credential:DesktopCredential)=>void):()=>void;
 };
