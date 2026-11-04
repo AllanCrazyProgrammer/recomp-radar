@@ -93,7 +93,7 @@ handle('radar:sgdb-set-key',k=>{if(typeof k!=='string'||k.length>100)throw new E
 handle('radar:sgdb-clear-key',()=>sgdb.clearKey());
 handle('radar:sgdb-art',(repo,terms,options)=>{
  const r=repoArg(repo);
- const list=Array.isArray(terms)?terms.filter((t):t is string=>typeof t==='string'&&t.trim().length>=2&&t.length<=80).slice(0,4):[];
+ const list=Array.isArray(terms)?terms.filter((t):t is string=>typeof t==='string'&&t.trim().length>=2&&t.length<=80).slice(0,5):[];
  const o=(options&&typeof options==='object'?options:{}) as {force?:unknown;override?:unknown};
  const override=o.override===undefined?undefined:typeof o.override==='string'&&o.override.trim().length>=2&&o.override.length<=80?o.override.trim():null;
  return sgdb.art(r,list,{force:o.force===true,override});

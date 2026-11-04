@@ -3,7 +3,7 @@
 import {safeStorage} from 'electron';
 import {readFile,rm,writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
-import {SGDB_API,bestGame,bestImage,fresh,gridQuery,parseGames,parseImages,validKey,type SgdbArt,type SgdbEntry} from '../lib/steamgriddb.ts';
+import {SGDB_API,acronym,bestGame,bestImage,fresh,gridQuery,parseGames,parseImages,repoHints,validKey,type SgdbArt,type SgdbEntry,type SgdbGame} from '../lib/steamgriddb.ts';
 
 const USER_AGENT='RecompRadar-Desktop/1.0';
 
@@ -47,9 +47,26 @@ export function createSteamGridDb(rootDir:string){
  async function clearKey(){await rm(keyFile,{force:true});key=null;return true;}
  async function status(){return {configured:!!(await loadKey())};}
 
- async function lookup(term:string,k:string):Promise<SgdbArt|null>{
-  const game=bestGame(parseGames(await api('/search/autocomplete/'+encodeURIComponent(term),k)),term);
-  if(!game)return null;
+ /** Prueba los términos en orden hasta un nombre exacto o unas siglas del repo; si no, el mejor del primero. */
+ async function findGame(terms:string[],hints:string[],k:string):Promise<{game:SgdbGame;term:string}|null>{
+  const norm=(s:string)=>s.toLowerCase().replace(/[^a-z0-9]+/g,'');
+  // Sin coincidencia fuerte, junta los candidatos de todas las búsquedas y los compara con el primer término
+  // (el título del usuario): "Halo CE" no devuelve "Halo: Combat Evolved", pero "Halo" sí.
+  const all:SgdbGame[]=[];
+  for(const term of terms){
+   const games=parseGames(await api('/search/autocomplete/'+encodeURIComponent(term),k));
+   const strong=games.find(g=>norm(g.name)===norm(term))??games.find(g=>hints.includes(acronym(g.name)));
+   if(strong)return {game:strong,term};
+   for(const g of games)if(!all.some(x=>x.id===g.id))all.push(g);
+  }
+  const best=bestGame(all,terms[0]??'',hints);
+  return best?{game:best,term:terms[0]}:null;
+ }
+
+ async function lookup(terms:string[],hints:string[],k:string):Promise<SgdbArt|null>{
+  const found=await findGame(terms,hints,k);
+  if(!found)return null;
+  const {game,term}=found;
   const [portrait,landscape,hero,icon]=await Promise.all([
    api(`/grids/game/${game.id}?${gridQuery.portrait}`,k),
    api(`/grids/game/${game.id}?${gridQuery.landscape}`,k),
@@ -70,7 +87,7 @@ export function createSteamGridDb(rootDir:string){
    if(!k)return {repo,art:null,checkedAt:0,term:override,error:null};
    const candidates=override?[override]:terms;
    let found:SgdbArt|null=null;
-   try{for(const term of candidates){found=await lookup(term,k);if(found)break;}}
+   try{found=await lookup(candidates,repoHints(repo),k);}
    catch(e){return {repo,art:prior?.art??null,checkedAt:prior?.checkedAt??0,term:override,error:e instanceof Error?e.message:'Error de SteamGridDB.'};}
    const entry:SgdbEntry={repo,art:found,checkedAt:Date.now(),term:override,error:null};
    c[id]=entry;await saveCache();return entry;

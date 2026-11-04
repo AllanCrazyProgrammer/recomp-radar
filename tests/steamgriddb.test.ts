@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {bestGame,bestImage,fresh,parseGames,parseImages,searchTerms,validCdnUrl,validKey,SGDB_TTL_MS} from '../lib/steamgriddb.ts';
+import {acronym,nameScore,repoHints,bestGame,bestImage,fresh,parseGames,parseImages,searchTerms,validCdnUrl,validKey,SGDB_TTL_MS} from '../lib/steamgriddb.ts';
 
 const img=(id:number,score:number,extra:Record<string,unknown>={})=>({id,score,url:`https://cdn2.steamgriddb.com/grid/${'a'.repeat(31)}${id}.png`,thumb:`https://cdn2.steamgriddb.com/thumb/${'a'.repeat(31)}${id}.jpg`,width:600,height:900,style:['alternate'],...extra});
 
@@ -25,6 +25,23 @@ test('chooses the exact game name before the first result',()=>{
  assert.equal(bestGame(games,'Halo Combat Evolved')?.id,2);
  assert.equal(bestGame(games,'Something else')?.id,1);
  assert.equal(bestGame([],'x'),null);
+});
+
+test('uses repository acronyms to pick the right game',()=>{
+ const games=parseGames({data:[{id:1,name:"Conker's Pocket Tales",verified:true},{id:2,name:"Conker's Bad Fur Day",verified:true},{id:3,name:'Conker: Live & Reloaded',verified:true}]});
+ assert.equal(acronym("Conker's Bad Fur Day"),'cbfd');
+ assert.deepEqual(repoHints('sciaschi/CBFD-Recompiled'),['cbfd','recompiled'].filter(w=>w.length<=8));
+ assert.equal(bestGame(games,'Conker 64',repoHints('sciaschi/CBFD-Recompiled'))?.id,2);
+ assert.equal(bestGame(games,'Conker 64')?.id,1);
+});
+
+test('prefers the closest name over spin-offs, mods and sequels',()=>{
+ const g=(...names:string[])=>names.map((name,i)=>({id:i+1,name,verified:true}));
+ assert.equal(bestGame(g('Halo: CE Mod Tools - MCC','Halo: Combat Evolved','Halo 2'),'Halo CE')?.name,'Halo: Combat Evolved');
+ assert.equal(bestGame(g('Paper Mario 64 Randomizer','Paper Mario','Paper Mario: The Thousand-Year Door'),'Paper Mario 64 3ds')?.name,'Paper Mario');
+ assert.equal(bestGame(g('Xenoblade Chronicles X','Xenoblade Chronicles','Xenoblade Chronicles 2'),'Xenoblade 1')?.name,'Xenoblade Chronicles');
+ assert.equal(bestGame(g('Pokémon Ruby Version','Pokémon Emerald Version'),'Pokemon Emerald')?.name,'Pokémon Emerald Version');
+ assert.ok(nameScore('Halo CE','Halo: Combat Evolved')>nameScore('Halo CE','Halo: CE Mod Tools - MCC'));
 });
 
 test('builds search terms from manual name, title and repository',()=>{

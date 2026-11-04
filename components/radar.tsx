@@ -40,8 +40,13 @@ function LibraryInstall({game}:{game:LibraryGame}){
 }
 
 function SourceCover({repo,label,cover,org=false}:{repo?:string;label:string;cover?:Cover;org?:boolean}){
- const [brokenVersion,setBrokenVersion]=useState<string|null>(null);
- return <div className={'source-icon '+(org?'green':'')}>{repo&&cover&&brokenVersion!==cover.updatedAt?<img src={coverUrl(repo,cover)} alt={'Portada de '+label} loading="lazy" onError={()=>setBrokenVersion(cover.updatedAt)}/>:<Icon name={org?'folder':'game'} size={19}/>}</div>;
+ // Portada personal → arte de SteamGridDB (vertical, icono, horizontal) → icono genérico.
+ const sgdb=useSgdb(),art=repo&&!org?sgdb?.entries[repo.toLowerCase()]?.art:null;
+ const sources=[repo&&cover?coverUrl(repo,cover):null,art?.portrait?.thumb,art?.icon?.url,art?.landscape?.thumb].filter((src,i,all):src is string=>!!src&&all.indexOf(src)===i);
+ const key=sources.join("|");
+ const [failed,setFailed]=useState<{key:string;count:number}>({key,count:0});
+ const src=sources[failed.key===key?failed.count:0];
+ return <div className={"source-icon "+(org?"green":"")}>{src?<img src={src} alt={"Portada de "+label} loading="lazy" onError={()=>setFailed({key,count:(failed.key===key?failed.count:0)+1})}/>:<Icon name={org?"folder":"game"} size={19}/>}</div>;
 }
 
 function CoverControl({game,cover,onChange,onError,onNotice}:{game:LibraryGame;cover?:Cover;onChange:()=>Promise<void>;onError:(text:string)=>void;onNotice:(text:string)=>void}){
