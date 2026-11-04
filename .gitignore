@@ -50,3 +50,4 @@ next-env.d.ts
 /firestore-debug.log
 /ui-debug.log
 /auth-debug.log
+/dist-electron/

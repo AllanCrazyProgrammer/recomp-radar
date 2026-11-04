@@ -18,6 +18,18 @@ Personal Firestore paths are scoped by Firebase UID. A user can share their foll
 
 Cover URLs and metadata are stored in Firestore; Firebase Storage is not used. A local JPG/PNG upload is resized in the browser to 320 px and 640 px variants, then JPEG compressed. Both data URLs are stored only when their combined size is under 180 KB. Larger results are rejected and the user can save an HTTPS cover URL instead. URL images depend on the remote host remaining available.
 
+## Desktop version (Electron)
+
+The same React app runs inside Electron and adds real installs: download the recommended release file, verify it against the release's SHA-256 sums when published, extract it, find the game executable and launch it. The web version is unchanged; without the desktop bridge those panels are hidden.
+
+- `npm run desktop` builds the web app, compiles `electron/` and opens the app. It serves `dist/` from `http://localhost:47821` because Firebase Auth rejects `file://`; `localhost` is an authorized domain by default.
+- `npm run dev` + `npm run desktop:dev` uses the Vite dev server instead.
+- Games are stored in the app data folder (`~/Library/Application Support/recomp-radar/games/<owner>__<repo>` on macOS), with an `install.json` manifest (version, SHA-256, executable, last played).
+- Supported: `.zip`, `.tar.*`, `.7z`/`.rar` (bsdtar), `.dmg` (macOS), `.AppImage` (Linux), `.exe` (Windows) and bare binaries. `.msi`, `.pkg`, `.deb`, Flatpak and APK stay as manual downloads.
+- Safety: the main process only accepts `https://github.com/<repo>/releases/download/<tag>/<file>` for the same repo and tag, follows redirects only to GitHub hosts, caps the size at the release's declared size, rejects archive entries with `..` or absolute paths and symlinks that point outside the game folder, and never runs commands through a shell. The window runs with `sandbox`, `contextIsolation` and no Node integration; only the app's own origin can call the bridge.
+- Installing also marks that release as your installed version in your account, so update notices keep working.
+- Each game page shows the repository README (from `raw.githubusercontent.com`, no API quota) rendered as plain React elements, never as HTML.
+
 ## Development checks
 
 ```sh

@@ -6,4 +6,5 @@ import '../app/retro.css';
 import '../app/comfort.css';
 import '../app/friends.css';
 import '../app/animations.css';
+import '../app/desktop.css';
 createRoot(document.getElementById('root')!).render(<React.StrictMode><Radar/></React.StrictMode>);
