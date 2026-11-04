@@ -51,3 +51,5 @@ next-env.d.ts
 /ui-debug.log
 /auth-debug.log
 /dist-electron/
+/release/
+/.firebase/
