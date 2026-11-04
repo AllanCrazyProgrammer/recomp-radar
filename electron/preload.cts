@@ -17,6 +17,12 @@ contextBridge.exposeInMainWorld('radarDesktop',{
  uninstall:(repo:string)=>call('radar:uninstall',repo),
  reveal:(repo:string)=>call('radar:reveal',repo),
  chooseExecutable:(repo:string)=>call('radar:choose-executable',repo),
+ startLogin:(provider:string)=>call('radar:start-login',provider),
+ onAuthCredential:(listener:(credential:unknown)=>void)=>{
+  const handler=(_event:IpcRendererEvent,credential:unknown)=>listener(credential);
+  ipcRenderer.on('radar:auth-credential',handler);
+  return ()=>{ipcRenderer.removeListener('radar:auth-credential',handler);};
+ },
  onProgress:(listener:(progress:unknown)=>void)=>{
   const handler=(_event:IpcRendererEvent,progress:unknown)=>listener(progress);
   ipcRenderer.on('radar:progress',handler);

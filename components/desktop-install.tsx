@@ -17,7 +17,9 @@ function installChoices(game:LibraryGame,desktop:Desktop){
  if(!release||!platform)return {release,options:[],best:null,checksum:null};
  const os=platform.os as 'macOS'|'Windows'|'Linux';
  const {ranked,best}=rankInstallAssets(files,platform);
- const options=ranked.filter(f=>installFormat(f.name,os));
+ // Instalar automáticamente solo lo que la release marca para este sistema; «Otros archivos»
+ // (builds web, mods, símbolos) no son un juego para este equipo aunque sean .zip.
+ const options=ranked.filter(f=>f.platform===os&&installFormat(f.name,os));
  const checksum=files.find(f=>/(?:sha256|checksums?)/i.test(f.name)&&f.platform==='Otros archivos')??null;
  return {release,options,best:options.find(f=>best.includes(f))??options[0]??null,checksum};
 }
