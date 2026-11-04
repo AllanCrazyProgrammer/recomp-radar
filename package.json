@@ -1,6 +1,10 @@
 {
   "name": "recomp-radar",
   "version": "0.1.0",
+  "productName": "Recomp Radar",
+  "description": "Radar de recomps y ports: novedades, catálogo e instalación de juegos.",
+  "author": "AllanCrazyProgrammer",
+  "homepage": "https://recomp-radar-allan.web.app",
   "private": true,
   "engines": {
     "node": ">=22.13.0"
@@ -9,12 +13,13 @@
     "dev": "vite --host 127.0.0.1",
     "build": "vite build",
     "start": "vite preview --host 127.0.0.1",
-    "lint": "eslint . --ignore-pattern dist --ignore-pattern .next --ignore-pattern app/api --ignore-pattern examples",
+    "lint": "eslint . --ignore-pattern dist --ignore-pattern dist-electron --ignore-pattern release --ignore-pattern .next --ignore-pattern app/api --ignore-pattern examples",
     "test": "node --experimental-strip-types --test tests/*.test.ts",
     "test:rules": "firebase --config firebase.json emulators:exec --only firestore \"tsx --test tests/firestore-rules.emulator.ts\"",
     "build:electron": "tsc -p tsconfig.electron.json",
     "desktop": "npm run build && npm run build:electron && electron .",
-    "desktop:dev": "npm run build:electron && RADAR_DEV_URL=http://localhost:5173 electron ."
+    "desktop:dev": "npm run build:electron && RADAR_DEV_URL=http://localhost:5173 electron .",
+    "package:desktop": "npm run build && npm run build:electron && electron-builder --publish never"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",
@@ -55,6 +60,7 @@
     "@typescript-eslint/parser": "^8.59.3",
     "@vitejs/plugin-react": "6.0.2",
     "electron": "44.9.2",
+    "electron-builder": "^26.0.12",
     "eslint": "9.39.4",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.1.1",
@@ -73,5 +79,65 @@
       "sharp": "0.35.4"
     }
   },
-  "main": "dist-electron/electron/main.js"
+  "main": "dist-electron/electron/main.js",
+  "build": {
+    "appId": "com.allancrazyprogrammer.recompradar",
+    "productName": "Recomp Radar",
+    "artifactName": "Recomp-Radar-${version}-${os}-${arch}.${ext}",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*",
+      "package.json",
+      "!node_modules/**/*"
+    ],
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ],
+      "category": "public.app-category.games",
+      "identity": null
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "category": "Game"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "AllanCrazyProgrammer",
+      "repo": "recomp-radar",
+      "releaseType": "draft"
+    },
+    "afterPack": "build/after-pack.cjs"
+  }
 }

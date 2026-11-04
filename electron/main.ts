@@ -18,6 +18,8 @@ const distDir=resolve(here,'..','..','dist');
 const devUrl=process.env.RADAR_DEV_URL;
 const PORT=Number(process.env.RADAR_PORT)||47821;
 const appOrigin=devUrl?new URL(devUrl).origin:`http://localhost:${PORT}`;
+// Misma carpeta de datos en desarrollo y en la app empaquetada (que se llama "Recomp Radar").
+app.setPath('userData',join(app.getPath('appData'),'recomp-radar'));
 const installer=createInstaller(app.getPath('userData'));
 const sgdb=createSteamGridDb(app.getPath('userData'));
 let server:Server|null=null,win:BrowserWindow|null=null;

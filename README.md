@@ -41,6 +41,13 @@ The same React app runs inside Electron and adds real installs: download the rec
 - Desktop sign-in uses the system browser (Google blocks OAuth in embedded browsers): the app opens `/?desktop-login=…` with a one-time code, and that page posts the OAuth credential only to the app's local server.
 - Each game page shows the repository README (from `raw.githubusercontent.com`, no API quota) rendered as plain React elements, never as HTML.
 
+### Sharing the desktop app
+
+- `npm run package:desktop` builds installers into `release/` with electron-builder: on macOS, `Recomp-Radar-<version>-mac-arm64.dmg` (Apple Silicon) and `…-mac-x64.dmg` (Intel). Only `dist/`, `dist-electron/` and `package.json` are packaged; the main process uses no npm packages at runtime.
+- The `Escritorio` GitHub Actions workflow builds the macOS, Windows (`.exe`, NSIS) and Linux (`.AppImage`) installers. Run it by hand to get them as workflow artifacts, or push a tag (`git tag v0.1.0 && git push origin v0.1.0`, matching `version` in `package.json`) to get a **draft** GitHub Release with them attached; publish the draft to share the link. It needs the repository variables `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, `VITE_FIREBASE_PROJECT_ID`, `VITE_FIREBASE_MESSAGING_SENDER_ID` and `VITE_FIREBASE_APP_ID` (the same public web config the hosted site uses).
+- The builds are not notarized. The macOS app is ad-hoc signed (`build/after-pack.cjs`) so Apple Silicon does not report it as damaged; on first launch macOS still blocks it as coming from an unidentified developer. Open it once from System Settings → Privacy & Security → **Open Anyway**. On Windows, SmartScreen asks for **More info → Run anyway**.
+- The packaged app keeps the same data folder as `npm run desktop` (`recomp-radar`), so installed games, sign-in and the SteamGridDB key carry over. Sign-in works for anyone because it goes through the hosted site.
+
 ## Development checks
 
 ```sh
