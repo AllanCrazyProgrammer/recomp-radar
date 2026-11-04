@@ -1,0 +1,48 @@
+/* Versión de escritorio (instalar / jugar) y ficha README. Usa la paleta de .installed-panel. */
+.desktop-panel{border-color:#9ccfb7;background:linear-gradient(115deg,#f6fdf9,#eef7f3)}
+.desktop-actions{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 8px}
+.desktop-actions .primary{width:auto;min-width:150px}
+.desktop-actions .secondary.danger{color:#a63a3a;border-color:#e5c5c5}
+.desktop-choice{display:flex;align-items:center;gap:8px;font-size:11px;color:#4d7793;margin:6px 0 8px}
+.desktop-choice select{flex:1;min-width:0;font-size:11px}
+.desktop-facts{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px 18px;margin:16px 0 0}
+.desktop-facts div{min-width:0}.desktop-facts .wide{grid-column:1/-1}
+.desktop-facts dt{font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:#7b9cac;margin:0 0 3px}
+.desktop-facts dd{margin:0;font-size:13px;color:#375f77;overflow-wrap:anywhere}
+.desktop-facts code{font-size:11px}
+.desktop-progress{margin:16px 0 8px;display:grid;gap:6px}
+.desktop-progress small{font-size:11px;color:#4d7793}
+.desktop-progress-bar{height:8px;border-radius:4px;background:#dce9ef;overflow:hidden}
+.desktop-progress-bar span{display:block;height:100%;background:linear-gradient(90deg,#31a4ea,#1b8dde);transition:width .2s}
+.desktop-progress-bar span.indeterminate{width:35%!important;animation:desktop-indeterminate 1.2s ease-in-out infinite}
+@keyframes desktop-indeterminate{0%{transform:translateX(-100%)}100%{transform:translateX(300%)}}
+@media (prefers-reduced-motion:reduce){.desktop-progress-bar span.indeterminate{animation:none;width:100%!important;opacity:.6}}
+button.library-install-link.desktop-play{border:0;background:none;cursor:pointer;font:inherit;display:inline-flex;align-items:center;gap:5px;padding:0}
+
+.game-readme .readme-body{margin:14px 0 6px;font-size:12px;line-height:1.65;color:#375f77;overflow-wrap:anywhere}
+.game-readme .readme-body h3{font-size:16px;margin:14px 0 6px}
+.game-readme .readme-body h4{font-size:14px;margin:12px 0 6px}
+.game-readme .readme-body h5{font-size:12px;margin:10px 0 4px}
+.game-readme .readme-body p,.game-readme .readme-body ul,.game-readme .readme-body ol{margin:0 0 10px}
+.game-readme .readme-body ul,.game-readme .readme-body ol{padding-left:20px}
+.game-readme .readme-body ul{list-style:disc}.game-readme .readme-body ol{list-style:decimal}
+.game-readme .readme-body li{margin:0 0 3px}
+.game-readme .readme-body pre{background:#eef4f7;border:1px solid #d0e2eb;border-radius:6px;padding:10px;overflow-x:auto;font-size:11px;margin:0 0 10px}
+.game-readme .readme-body code{font-size:11px;background:#eef4f7;padding:1px 4px;border-radius:3px}
+.game-readme .readme-body pre code{background:none;padding:0}
+.game-readme .readme-body blockquote{margin:0 0 10px;padding:6px 12px;border-left:3px solid #9ccfb7;background:#f3faf6}
+.game-readme .readme-body a{color:#137da6}
+.desktop-login{max-width:560px;margin:12vh auto;padding:0 16px}.desktop-login p{font-size:13px;line-height:1.6;color:#375f77;margin:14px 0}.desktop-login .primary{width:auto}
+.sgdb-banner p,.sgdb-panel p{font-size:12px;line-height:1.6;color:#375f77;margin:12px 0}
+.sgdb-banner .installed-heading .text-button{margin-left:auto}
+.sgdb-key-form{display:grid;gap:6px;margin:10px 0 0;font-size:11px;color:#4d7793}
+.sgdb-key-form>div{display:flex;gap:8px;align-items:stretch}
+.sgdb-key-form input,.sgdb-search input{flex:1;min-width:0;background:#fff;border:2px solid;border-color:#808080 #fff #fff #808080;padding:8px 10px;font-size:13px}
+.sgdb-key-form input{font-family:ui-monospace,monospace}
+.sgdb-key-form .primary{width:auto}
+.sgdb-search{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}.sgdb-search input{flex:1;min-width:180px}
+.sgdb-strip{display:flex;gap:10px;align-items:flex-end;margin:14px 0 4px;overflow-x:auto}
+.sgdb-strip img{border-radius:6px;border:1px solid #d0e2eb;object-fit:cover;background:#eef4f7}
+.sgdb-strip .portrait{height:120px;aspect-ratio:2/3}.sgdb-strip .landscape{height:80px;aspect-ratio:92/43}
+.sgdb-strip .hero{height:80px;aspect-ratio:96/31}.sgdb-strip .icon{height:48px;width:48px;object-fit:contain}
+.sgdb-key-actions{display:flex;gap:14px}

@@ -18,6 +18,29 @@ Personal Firestore paths are scoped by Firebase UID. A user can share their foll
 
 Cover URLs and metadata are stored in Firestore; Firebase Storage is not used. A local JPG/PNG upload is resized in the browser to 320 px and 640 px variants, then JPEG compressed. Both data URLs are stored only when their combined size is under 180 KB. Larger results are rejected and the user can save an HTTPS cover URL instead. URL images depend on the remote host remaining available.
 
+## Descubrir (community catalog)
+
+**Novedades → Descubrir** browses the public catalog of [Quiver Launcher](https://quiverlauncher.com) (`api.quiverlauncher.com/api/v1`, read-only, cached for 5 minutes, with Quiver's documented fallback host). Recomp Radar is not affiliated with Quiver: the page always credits the catalog, links each project to its Quiver page, and does not use Quiver's name or logo as its own. It works on the web and the desktop app.
+
+- Shelves for best rated, recently updated and recently added; filters for search, original console (or a whole maker), system (defaults to this device), project type and hiding mostly-AI-made projects; "Ver todo" pages with cursor-based "Cargar más".
+- Each project shows its art (SteamGridDB URLs from the catalog), what players report, systems, latest version, tags and the repository README. GitHub projects can be added to your library in one click.
+- Every field is validated in `lib/quiver-catalog.ts`; images are only loaded from known hosts and links must be https.
+- Release checks follow Quiver's approach: if a followed GitHub repository is in Quiver's catalog (`/release-status` index, cached 6 h), its last 20 releases come from `/apps/{slug}/release-history` (cached 30 min, 5 min on a forced refresh) and never use the 60/h public GitHub quota. Only repositories outside the catalog are checked on GitHub, and a GitHub pause no longer stops the catalog ones. Releases Quiver blocked are skipped; a release already stored from GitHub keeps its id and revision, so it is neither duplicated nor flagged as new (`lib/quiver-releases.ts`).
+
+## Desktop version (Electron)
+
+The same React app runs inside Electron and adds real installs: download the recommended release file, verify it against the release's SHA-256 sums when published, extract it, find the game executable and launch it. The web version is unchanged; without the desktop bridge those panels are hidden.
+
+- `npm run desktop` builds the web app, compiles `electron/` and opens the app. It serves `dist/` from `http://localhost:47821` because Firebase Auth rejects `file://`; `localhost` is an authorized domain by default.
+- `npm run dev` + `npm run desktop:dev` uses the Vite dev server instead.
+- Games are stored in the app data folder (`~/Library/Application Support/recomp-radar/games/<owner>__<repo>` on macOS), with an `install.json` manifest (version, SHA-256, executable, last played).
+- Supported: `.zip`, `.tar.*`, `.7z`/`.rar` (bsdtar), `.dmg` (macOS), `.AppImage` (Linux), `.exe` (Windows) and bare binaries. `.msi`, `.pkg`, `.deb`, Flatpak and APK stay as manual downloads.
+- Safety: the main process only accepts `https://github.com/<repo>/releases/download/<tag>/<file>` for the same repo and tag, follows redirects only to GitHub hosts, caps the size at the release's declared size, rejects archive entries with `..` or absolute paths and symlinks that point outside the game folder, and never runs commands through a shell. The window runs with `sandbox`, `contextIsolation` and no Node integration; only the app's own origin can call the bridge.
+- Installing also marks that release as your installed version in your account, so update notices keep working.
+- Automatic art from SteamGridDB (desktop only): paste a free API key from steamgriddb.com → Preferences → API. The key is verified, encrypted with the OS keychain (`safeStorage`) and never reaches the page. For each game the app searches by title (then by repository name), picks the best-scored portrait, landscape grid, hero and icon, and caches results for 7 days (misses for 1 day). Only `https://cdn2.steamgriddb.com/...` image URLs are accepted. A personal cover still wins; each game page lets you search with another name or refresh.
+- Desktop sign-in uses the system browser (Google blocks OAuth in embedded browsers): the app opens `/?desktop-login=…` with a one-time code, and that page posts the OAuth credential only to the app's local server.
+- Each game page shows the repository README (from `raw.githubusercontent.com`, no API quota) rendered as plain React elements, never as HTML.
+
 ## Development checks
 
 ```sh
