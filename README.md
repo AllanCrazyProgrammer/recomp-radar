@@ -18,6 +18,14 @@ Personal Firestore paths are scoped by Firebase UID. A user can share their foll
 
 Cover URLs and metadata are stored in Firestore; Firebase Storage is not used. A local JPG/PNG upload is resized in the browser to 320 px and 640 px variants, then JPEG compressed. Both data URLs are stored only when their combined size is under 180 KB. Larger results are rejected and the user can save an HTTPS cover URL instead. URL images depend on the remote host remaining available.
 
+## Descubrir (community catalog)
+
+**Novedades → Descubrir** browses the public catalog of [Quiver Launcher](https://quiverlauncher.com) (`api.quiverlauncher.com/api/v1`, read-only, cached for 5 minutes, with Quiver's documented fallback host). Recomp Radar is not affiliated with Quiver: the page always credits the catalog, links each project to its Quiver page, and does not use Quiver's name or logo as its own. It works on the web and the desktop app.
+
+- Shelves for best rated, recently updated and recently added; filters for search, original console (or a whole maker), system (defaults to this device), project type and hiding mostly-AI-made projects; "Ver todo" pages with cursor-based "Cargar más".
+- Each project shows its art (SteamGridDB URLs from the catalog), what players report, systems, latest version, tags and the repository README. GitHub projects can be added to your library in one click.
+- Every field is validated in `lib/quiver-catalog.ts`; images are only loaded from known hosts and links must be https.
+
 ## Desktop version (Electron)
 
 The same React app runs inside Electron and adds real installs: download the recommended release file, verify it against the release's SHA-256 sums when published, extract it, find the game executable and launch it. The web version is unchanged; without the desktop bridge those panels are hidden.

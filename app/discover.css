@@ -1,0 +1,36 @@
+/* «Descubrir»: catálogo de Quiver dentro de Novedades. Reutiliza .game-card / .modal del tema. */
+.discover-switch{margin:0}
+.discover-attribution{display:flex;gap:8px;align-items:flex-start;font-size:11px;line-height:1.5;color:#4d7793;margin:0 0 14px}
+.discover-attribution a{color:#137da6}
+.discover-filters{flex-wrap:wrap}.discover-filters .search{flex:1 1 260px}
+.discover-filters .view-checkbox{display:flex;align-items:center;gap:6px;font-size:11px}
+.discover-shelf{margin:22px 0}
+.discover-shelf-heading{display:flex;align-items:baseline;justify-content:space-between;margin:0 0 10px}
+.discover-shelf-heading h3{margin:0;font-size:16px}
+.discover-row{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(220px,240px);gap:16px;overflow-x:auto;padding:2px 2px 12px;scroll-snap-type:x mandatory}
+.discover-row .discover-card{scroll-snap-align:start}
+.discover-card{position:relative}
+.discover-card .game-open{width:100%;border:0;padding:0;background:none;text-align:left;cursor:pointer;font:inherit;color:inherit}
+.discover-card .game-card-title{display:grid;gap:4px}
+.discover-card h3{font-size:14px;line-height:1.3;margin:0;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.discover-art{height:120px}
+.discover-art.discover-hero{width:100%;height:220px;border-radius:0;border:0;margin:0}
+.discover-art img{width:100%;height:100%;object-fit:cover}
+.discover-verdict{font-size:11px;font-weight:600}.discover-verdict.good{color:#2f7d32}.discover-verdict.mixed{color:#9a6a00}.discover-verdict.bad{color:#a63a3a}.discover-verdict.none{color:#6c8798;font-weight:400}
+.discover-meta{font-size:10px;color:#6c8798}
+.discover-ai{position:absolute;top:8px;left:8px;font-size:9px;letter-spacing:.6px;text-transform:uppercase;padding:3px 6px;border-radius:4px;background:#fff8;backdrop-filter:blur(4px);color:#4d5b66;border:1px solid #fff}
+.discover-ai.generated{background:#ffe9c7e6;color:#7a4a00}
+.discover-ai.inline{position:static;margin-left:8px}
+.discover-more{margin:18px auto 0;display:flex}
+.discover-modal{width:760px;max-width:calc(100vw - 32px);max-height:calc(100vh - 48px);padding:0;margin:auto}
+.discover-modal[open]{display:flex;flex-direction:column}
+.discover-detail{overflow-y:auto}
+.discover-detail-body{padding:18px 22px 6px}
+.discover-detail-body h2{margin:4px 0 8px;font-size:22px}
+.discover-detail-body p{font-size:13px;line-height:1.6;margin:0 0 10px}
+.discover-tags{margin:12px 0}
+.discover-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:14px 0 6px}
+.discover-actions .primary{width:auto}.discover-actions small{font-size:11px;color:#6c8798}
+.discover-in-library{display:inline-flex;gap:6px;align-items:center;font-size:12px;color:#2f7d32;font-weight:600}
+.discover-detail .game-readme{margin:12px 22px 22px}
+@media (max-width:640px){.discover-row{grid-auto-columns:78%}.discover-detail-body{padding:14px}}
