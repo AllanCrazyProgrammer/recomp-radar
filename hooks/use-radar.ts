@@ -9,12 +9,36 @@ import {readLibrary,saveTarget,removeTarget,setTargetPriority,saveInstallation,d
 import {installationFromRelease,manualInstallation} from '@/lib/library';
 import {createRefreshQueue,type RefreshJob} from '@/lib/refresh-queue';
 import {releaseDownloads} from '@/lib/release-assets';
+import {catalogGet} from '@/lib/quiver-catalog';
+import {INDEX_TTL_MS,loadIndex,toGithubReleases,type QuiverIndex} from '@/lib/quiver-releases';
 export type Cover={repo:string;updatedAt:string;url?:string;dataUrl?:string;dataUrl2x?:string};
 export type RepoCheck={repo:string;releasesAt:string|null;lastSync:string|null;error:string|null};
 type State={checks:RepoCheck[];targets:Target[];events:RadarEvent[];releases:RadarEvent[];installations:import('@/lib/library').Installation[];covers:Cover[];rate:{remaining:number|null;limit:number|null;reset:number|null;blockedUntil:number|null};lastSync:{at:string;errors:string[];repos:string[]}|null;background:boolean;limits:{maxRepos:number}};
 const blank:State={checks:[],targets:[],events:[],releases:[],installations:[],covers:[],rate:{remaining:null,limit:60,reset:null,blockedUntil:null},lastSync:null,background:false,limits:{maxRepos:100}};
 export type Act=(body:Record<string,unknown>,silent?:boolean)=>Promise<boolean>;
 const cacheKey=(repo:string)=>'recomp-radar-github:'+repo.toLowerCase();
+// Como Quiver Launcher: si el repositorio está en su catálogo, sus versiones vienen de su API (en caché para
+// todos) y no gastan la cuota pública de GitHub (60/h). Solo los demás repositorios se consultan en GitHub.
+const QUIVER_INDEX_KEY='recomp-radar-quiver-index';
+let indexLoad:Promise<QuiverIndex|null>|null=null;
+function quiverIndex():Promise<QuiverIndex|null>{
+ const saved=(()=>{try{return JSON.parse(localStorage.getItem(QUIVER_INDEX_KEY)??'null') as QuiverIndex|null}catch{return null}})();
+ if(saved&&Date.now()-saved.at<INDEX_TTL_MS)return Promise.resolve(saved);
+ indexLoad??=loadIndex().then(index=>{try{localStorage.setItem(QUIVER_INDEX_KEY,JSON.stringify(index));}catch{/* Caché opcional. */}return index;},()=>saved).finally(()=>{indexLoad=null;});
+ return indexLoad;
+}
+async function fromQuiver(repo:string,force:boolean,knownIds:Record<string,string>):Promise<unknown[]|null>{
+ const slug=(await quiverIndex())?.slugs[repo.toLowerCase()];
+ if(!slug)return null;
+ const key='recomp-radar-quiver:'+repo.toLowerCase(),now=Date.now();
+ const saved=(()=>{try{return JSON.parse(localStorage.getItem(key)??'null') as {checkedAt:number;data:unknown}|null}catch{return null}})();
+ if(saved&&now-saved.checkedAt<(force?5:30)*60_000)return toGithubReleases(repo,saved.data,knownIds);
+ try{
+  const data=await catalogGet('/apps/'+encodeURIComponent(slug)+'/release-history?limit=20');
+  try{localStorage.setItem(key,JSON.stringify({checkedAt:now,data}));}catch{/* Caché opcional. */}
+  return toGithubReleases(repo,data,knownIds);
+ }catch{return saved?toGithubReleases(repo,saved.data,knownIds):null;}
+}
 async function github(repo:string,force=false){
  const key=cacheKey(repo),now=Date.now(),saved=(()=>{try{return JSON.parse(localStorage.getItem(key)??'null')}catch{return null}})();
  if(!force&&saved?.checkedAt>now-30*60_000)return {items:saved.items as unknown[],remaining:saved.remaining,reset:saved.reset};
@@ -32,7 +56,9 @@ async function github(repo:string,force=false){
 function event(repo:string,x:Record<string,unknown>):RadarEvent {const tag=String(x.tag_name??''),published=String(x.published_at??x.created_at??'');return {id:String(x.id),repo,kind:'release',title:String(x.name||tag||'Release'),body:String(x.body??'').slice(0,6000),url:String(x.html_url),date:published,sourceUpdated:String(x.updated_at??published),revision:String(x.updated_at??published),status:x.prerelease?'prerelease':'published',assets:Array.isArray(x.assets)?x.assets.length:0,firstSeen:new Date().toISOString(),detectedAt:new Date().toISOString(),read:false,releaseTag:tag,downloads:releaseDownloads(repo,tag,x.assets)};}
 export function useRadar(){const [state,setState]=useState<State>(blank),[user,setUser]=useState<typeof auth.currentUser>(null),[loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[syncing,setSyncing]=useState(false),[waiting]=useState(false),[rateRetryAt,setRateRetryAt]=useState<number|null>(null),[error,setError]=useState(''),[notice,setNotice]=useState(''),[authRequired,setAuthRequired]=useState(true),[refreshTargetId,setRefreshTargetId]=useState<string|null>(null);
  const loadSnapshot=useCallback(async()=>{if(!user)return blank;const data=await readLibrary(user.uid);const next={...blank,...data};setState(next);return next;},[user]);
- const refresh=useCallback(async(job:RefreshJob={})=>{if(!user)return;setSyncing(true);setRefreshTargetId(job.targetId??null);try{const library=await readLibrary(user.uid);setState({...blank,...library});const targets=job.targetId?library.targets.filter(t=>t.id===job.targetId):library.targets;let remaining:number|null=null,reset:number|null=null;repoChecks: for(const target of targets){for(const repo of target.repos){try{if(remaining!==null)await new Promise(resolve=>setTimeout(resolve,1100));const result=await github(repo,job.fresh===true);remaining=result.remaining;reset=result.reset;const items=result.items as Record<string,unknown>[],batch=items.map(x=>event(repo.toLowerCase(),x)),prior=library.releases.filter(e=>e.repo.toLowerCase()===repo.toLowerCase()),merged=mergeEvents(prior,batch,new Date().toISOString());for(const e of merged)await setDoc(doc(db,'users',user.uid,'events',encodeURIComponent(e.id)),e,{merge:true});}catch(e){const err=e as Error&{retryAt?:number;remaining?:number;reset?:number};if(err.retryAt){setRateRetryAt(err.retryAt);remaining=err.remaining??null;reset=err.reset??null;break repoChecks;}setError(err.message);}}}setState({...blank,...await readLibrary(user.uid)});setState(s=>({...s,rate:{remaining,limit:60,reset,blockedUntil:null},lastSync:{at:new Date().toISOString(),errors:[],repos:[]}}));}catch(e){setError(e instanceof Error?e.message:'Falló la consulta de GitHub.');}finally{setSyncing(false);setRefreshTargetId(null);}},[user]);
+ const refresh=useCallback(async(job:RefreshJob={})=>{if(!user)return;setSyncing(true);setRefreshTargetId(job.targetId??null);try{const library=await readLibrary(user.uid);setState({...blank,...library});const targets=job.targetId?library.targets.filter(t=>t.id===job.targetId):library.targets;let remaining:number|null=null,reset:number|null=null;let githubUsed=false,githubBlocked=false;for(const target of targets){for(const repo of target.repos){try{const prior=library.releases.filter(e=>e.repo.toLowerCase()===repo.toLowerCase()),knownIds=Object.fromEntries(prior.filter(e=>e.releaseTag).map(e=>[e.releaseTag as string,e.id]));let items=await fromQuiver(repo,job.fresh===true,knownIds) as Record<string,unknown>[]|null;if(!items){if(githubBlocked)continue;if(githubUsed)await new Promise(resolve=>setTimeout(resolve,1100));githubUsed=true;const result=await github(repo,job.fresh===true);remaining=result.remaining;reset=result.reset;items=result.items as Record<string,unknown>[];}
+ // Misma release vista desde otra fuente: conserva su revisión para no marcarla como nueva.
+ const byId=new Map(prior.map(e=>[e.id,e]));const batch=items.map(x=>{const ev=event(repo.toLowerCase(),x),old=byId.get(ev.id);return old&&old.releaseTag===ev.releaseTag?{...ev,revision:old.revision}:ev;}),merged=mergeEvents(prior,batch,new Date().toISOString());for(const e of merged)await setDoc(doc(db,'users',user.uid,'events',encodeURIComponent(e.id)),e,{merge:true});}catch(e){const err=e as Error&{retryAt?:number;remaining?:number;reset?:number};if(err.retryAt){setRateRetryAt(err.retryAt);remaining=err.remaining??null;reset=err.reset??null;githubBlocked=true;continue;}setError(err.message);}}}setState({...blank,...await readLibrary(user.uid)});setState(s=>({...s,rate:{remaining,limit:60,reset,blockedUntil:null},lastSync:{at:new Date().toISOString(),errors:[],repos:[]}}));}catch(e){setError(e instanceof Error?e.message:'Falló la consulta de GitHub.');}finally{setSyncing(false);setRefreshTargetId(null);}},[user]);
  const refreshRef=useRef(refresh),retryRef=useRef<number|null>(rateRetryAt);useEffect(()=>{refreshRef.current=refresh;retryRef.current=rateRetryAt;},[refresh,rateRetryAt]);
  // Versión de escritorio: la credencial llega desde el navegador del sistema (ver lib/desktop-auth.ts).
  useEffect(()=>window.radarDesktop?.onAuthCredential(c=>{setError('');void signInWithDesktopCredential(c).catch(e=>setError(e instanceof Error?e.message:'No se pudo iniciar sesión.'));}),[]);

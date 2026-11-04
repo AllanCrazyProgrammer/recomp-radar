@@ -25,6 +25,7 @@ Cover URLs and metadata are stored in Firestore; Firebase Storage is not used. A
 - Shelves for best rated, recently updated and recently added; filters for search, original console (or a whole maker), system (defaults to this device), project type and hiding mostly-AI-made projects; "Ver todo" pages with cursor-based "Cargar más".
 - Each project shows its art (SteamGridDB URLs from the catalog), what players report, systems, latest version, tags and the repository README. GitHub projects can be added to your library in one click.
 - Every field is validated in `lib/quiver-catalog.ts`; images are only loaded from known hosts and links must be https.
+- Release checks follow Quiver's approach: if a followed GitHub repository is in Quiver's catalog (`/release-status` index, cached 6 h), its last 20 releases come from `/apps/{slug}/release-history` (cached 30 min, 5 min on a forced refresh) and never use the 60/h public GitHub quota. Only repositories outside the catalog are checked on GitHub, and a GitHub pause no longer stops the catalog ones. Releases Quiver blocked are skipped; a release already stored from GitHub keeps its id and revision, so it is neither duplicated nor flagged as new (`lib/quiver-releases.ts`).
 
 ## Desktop version (Electron)
 
